@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Principal Strategist — Training Program</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #060a12;
+    --bg-secondary: #0a0e17;
+    --bg-card: #0f1525;
+    --bg-code: #060a12;
+    --border: #152030;
+    --border-light: #1a3050;
+    --text-primary: #dfe6e9;
+    --text-secondary: #8395a7;
+    --text-muted: #4a5a6a;
+    --accent-cyan: #48dbfb;
+    --accent-blue: #0abde3;
+    --accent-green: #2ecc71;
+    --accent-red: #ff6b6b;
+    --accent-gold: #feca57;
+    --accent-purple: #a29bfe;
+    --gradient-cyan: linear-gradient(135deg, #0abde3, #48dbfb);
+    --gradient-green: linear-gradient(135deg, #00b894, #2ecc71);
+    --gradient-gold: linear-gradient(135deg, #e17055, #fdcb6e);
+    --gradient-red: linear-gradient(135deg, #ee5a24, #ff6b6b);
+    --gradient-purple: linear-gradient(135deg, #a29bfe, #6c5ce7);
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .bg-grid {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(72, 219, 251, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(72, 219, 251, 0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .bg-glow {
+    position: fixed; top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse, rgba(10, 189, 227, 0.05) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ─── Top Nav ─── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(6, 10, 18, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+
+  .top-nav .logo {
+    font-size: 14px; font-weight: 700;
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .top-nav nav { display: flex; gap: 20px; align-items: center; }
+  .top-nav nav a {
+    font-size: 12px; color: var(--text-muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .top-nav nav a:hover { color: var(--accent-cyan); }
+
+  @media (max-width: 720px) { .top-nav nav { display: none; } }
+
+  /* ─── Hero ─── */
+  .hero {
+    padding: 120px 24px 80px;
+    text-align: center;
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 5px 14px; border-radius: 20px;
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(72, 219, 251, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(72, 219, 251, 0.2);
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 .gradient {
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 8px;
+    font-weight: 300;
+  }
+
+  .hero .quote {
+    margin-top: 24px;
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 12px 20px;
+    border-left: 2px solid rgba(72, 219, 251, 0.2);
+    display: inline-block;
+  }
+
+  .hero-stats {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    margin-top: 28px;
+  }
+
+  .hero-stats span {
+    padding: 4px 12px; border-radius: 6px;
+    font-size: 11px; font-weight: 500;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  /* ─── Sections ─── */
+  .section {
+    padding: 80px 0;
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+
+  .section:last-of-type { border-bottom: none; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent-cyan);
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+
+  .section-desc {
+    font-size: 15px;
+    color: var(--text-secondary);
+    max-width: 680px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  /* ─── Cycle Flow ─── */
+  .cycle-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 4px;
+    padding: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 12px;
+  }
+
+  .cycle-flow .step {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .cycle-flow .step.start { background: rgba(72, 219, 251, 0.15); color: var(--accent-cyan); }
+  .cycle-flow .step.code { background: rgba(162, 155, 254, 0.15); color: var(--accent-purple); }
+  .cycle-flow .step.eod { background: rgba(255, 107, 107, 0.15); color: var(--accent-red); }
+  .cycle-flow .step.pass { background: rgba(46, 204, 113, 0.15); color: var(--accent-green); }
+  .cycle-flow .step.fail { background: rgba(255, 107, 107, 0.15); color: var(--accent-red); }
+  .cycle-flow .arrow { color: var(--text-muted); font-size: 16px; }
+
+  .cycle-flow .sub-loop {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .cycle-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ─── Phase Cards ─── */
+  .phase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+
+  .phase-card:hover {
+    border-color: rgba(72, 219, 251, 0.15);
+  }
+
+  .phase-card .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .phase-card .phase-number {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+
+  .phase-card .phase-number.p1 { background: rgba(72, 219, 251, 0.12); color: var(--accent-cyan); }
+  .phase-card .phase-number.p2 { background: rgba(254, 202, 87, 0.12); color: var(--accent-gold); }
+  .phase-card .phase-number.p3 { background: rgba(255, 107, 107, 0.12); color: var(--accent-red); }
+
+  .phase-card .phase-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .phase-card .phase-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .phase-card .theme-row {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .phase-card .theme-row strong {
+    color: var(--text-secondary);
+  }
+
+  .phase-week-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+
+  .phase-week-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-week-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(14, 24, 37, 0.5);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  .phase-week-table tr:hover td {
+    background: rgba(10, 14, 23, 0.4);
+  }
+
+  .phase-week-table .span-cell {
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  .phase-week-table .fail-mode {
+    font-size: 11px;
+    color: var(--accent-red);
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 107, 107, 0.06);
+    border-radius: 4px;
+    border-left: 2px solid rgba(255, 107, 107, 0.3);
+  }
+
+  .phase-week-table .fail-mode li {
+    list-style: none;
+    padding: 2px 0;
+  }
+
+  .phase-week-table .fail-mode li::before {
+    content: "✗ ";
+    color: var(--accent-red);
+  }
+
+  /* ─── Capsule ─── */
+  .capsule-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+
+  .capsule {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .capsule.cyan { background: rgba(72, 219, 251, 0.08); color: var(--accent-cyan); border: 1px solid rgba(72, 219, 251, 0.12); }
+  .capsule.green { background: rgba(46, 204, 113, 0.08); color: var(--accent-green); border: 1px solid rgba(46, 204, 113, 0.12); }
+  .capsule.gold { background: rgba(254, 202, 87, 0.08); color: var(--accent-gold); border: 1px solid rgba(254, 202, 87, 0.12); }
+  .capsule.red { background: rgba(255, 107, 107, 0.08); color: var(--accent-red); border: 1px solid rgba(255, 107, 107, 0.12); }
+  .capsule.purple { background: rgba(162, 155, 254, 0.08); color: var(--accent-purple); border: 1px solid rgba(162, 155, 254, 0.12); }
+
+  /* ─── Scoring Table ─── */
+  .score-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 16px;
+  }
+
+  .score-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-code);
+  }
+
+  .score-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(14, 24, 37, 0.5);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  .score-table tr:hover td { background: rgba(10, 14, 23, 0.3); }
+  .score-table .weight { font-family: 'JetBrains Mono', monospace; font-weight: 600; text-align: center; }
+
+  /* ─── AST Grid ─── */
+  .ast-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) { .ast-grid { grid-template-columns: 1fr; } }
+
+  .ast-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .ast-card .ast-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .ast-card .ast-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .ast-card .ast-header .dot.critical { background: var(--accent-red); }
+  .ast-card .ast-header .dot.warning { background: var(--accent-gold); }
+  .ast-card .ast-header .dot.info { background: var(--accent-cyan); }
+
+  .ast-card .ast-header .sev {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ast-card .ast-header .penalty {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+  }
+
+  .ast-card .ast-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-cyan);
+    display: block;
+    margin: 4px 0;
+  }
+
+  .ast-card .ast-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ─── Resources ─── */
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .resource-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .resource-card h4 {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--accent-cyan);
+  }
+
+  .resource-card .mod {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-green);
+    display: block;
+    margin: 2px 0;
+  }
+
+  .resource-card .use {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: block;
+    margin: 2px 0;
+  }
+
+  .resource-card .days {
+    font-size: 10px;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── Schedule ─── */
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .schedule-day {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .schedule-day .day-name {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .schedule-day .activity {
+    font-size: 12px;
+    font-weight: 500;
+    margin: 6px 0;
+    color: var(--text-primary);
+  }
+
+  .schedule-day .time {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .schedule-day.weekend { border-color: rgba(21, 32, 48, 0.4); }
+  .schedule-day.weekend .activity { color: var(--text-muted); font-size: 11px; }
+
+  /* ─── Timeline ─── */
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+    margin-top: 24px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 18px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-cyan);
+    background: var(--bg-primary);
+  }
+
+  .timeline-item.complete::before { background: var(--accent-green); border-color: var(--accent-green); }
+
+  .timeline-item .tl-phase {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-cyan);
+  }
+
+  .timeline-item .tl-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 4px 0;
+  }
+
+  .timeline-item .tl-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ─── Quote Block ─── */
+  .outro-quote {
+    text-align: center;
+    max-width: 650px;
+    margin: 60px auto 0;
+    padding: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .outro-quote p {
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .outro-quote .attr {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: normal;
+  }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  .footer a { color: var(--accent-cyan); text-decoration: none; }
+
+  /* ─── Tabs ─── */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover {
+    border-color: rgba(72, 219, 251, 0.3);
+    color: var(--text-primary);
+  }
+
+  .tab-btn.active {
+    background: rgba(72, 219, 251, 0.1);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ─── Print ─── */
+  @media print {
+    .top-nav { display: none; }
+    .bg-grid, .bg-glow { display: none; }
+    body { background: #fff; color: #000; }
+    .container { max-width: 100%; }
+    .section { padding: 40px 0; page-break-inside: avoid; }
+    .phase-card, .ast-card, .resource-card, .schedule-day, .timeline-item { border-color: #ccc; background: #f9f9f9; }
+    .phase-week-table th { color: #666; }
+    .phase-week-table td { color: #333; }
+    .hero h1 .gradient { color: #0066cc; -webkit-text-fill-color: #0066cc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- ─── Nav ─── -->
+<div class="top-nav">
+  <div class="logo">Principal Strategist</div>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#phase1">Phase 1</a>
+    <a href="#phase2">Phase 2</a>
+    <a href="#phase3">Phase 3</a>
+    <a href="#scoring">Scoring</a>
+    <a href="#auditor">AST Auditor</a>
+    <a href="#resources">Resources</a>
+    <a href="#graduation">Graduation</a>
+  </nav>
+</div>
+
+<!-- ─── Hero ─── -->
+<section class="hero" id="overview">
+  <div class="container">
+    <div class="hero-badge">&#9733; Training Program v1.0</div>
+    <h1>
+      Master <span class="gradient">Algorithmic Arbitrage</span><br>
+      in 90 Days
+    </h1>
+    <p>A structured, simulator-driven program from data ingestion to SOCPA-compliant trading systems. No external dependencies. No shortcuts. Real professional standards.</p>
+    <div class="quote">&ldquo;This is not a course. This is a simulation of the most demanding trading desk in the region.&rdquo;</div>
+    <div class="hero-stats">
+      <span>90 Days</span>
+      <span>3 Phases</span>
+      <span>~200 Hours</span>
+      <span>Python 3.8+</span>
+      <span>Zero Dependencies</span>
+      <span>CMA / SOCPA / IFRS</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">&#9881; The Cycle</div>
+    <h2 class="section-title">How Each Day Works</h2>
+    <p class="section-desc">You receive a briefing, write code against a live mock exchange, then face a ruthless EOD evaluation. Score 100 or you do not advance.</p>
+
+    <div class="cycle-flow">
+      <span class="step start">START</span>
+      <span class="arrow">&rarr;</span>
+      <span class="step code">Briefing</span>
+      <span class="arrow">&rarr;</span>
+      <span class="step code">Write Code</span>
+      <span class="arrow">&rarr;</span>
+      <span class="step code">Run</span>
+      <span class="arrow">&rarr;</span>
+      <span class="step eod">EOD</span>
+      <span class="arrow">&rarr;</span>
+      <span class="step pass">Score &#8805; 100?</span>
+      <span class="arrow">&rarr;</span>
+      <span class="step start">ADVANCE</span>
+    </div>
+    <div class="cycle-flow" style="margin-top:0;border-top:0;padding-top:4px;justify-content:center">
+      <span style="color:var(--text-muted);font-size:12px">&#8617; Score &lt; 100 &mdash; Fix violations, re-run EOD</span>
+    </div>
+    <div class="cycle-note">The rule is simple: 100/100 or you repeat the day. There is no partial credit.</div>
+  </div>
+</section>
+
+<!-- ─── Prerequisites ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">&#9733; Prerequisites</div>
+    <h2 class="section-title">Before You Begin</h2>
+    <p class="section-desc">You should be comfortable with these Python fundamentals. The AST auditor will catch you if you're not.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:16px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:20px;margin-bottom:6px">&#128220;</div>
+        <h4 style="font-size:13px;font-weight:600">Python Syntax</h4>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Functions, loops, conditionals, list comprehensions</p>
+        <div class="capsule-row" style="margin-top:8px"><span class="capsule cyan">Day 1</span></div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:20px;margin-bottom:6px">&#128221;</div>
+        <h4 style="font-size:13px;font-weight:600">Type Annotations</h4>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">PEP 484 &mdash; <code>def f(x: int) -&gt; str:</code></p>
+        <div class="capsule-row" style="margin-top:8px"><span class="capsule cyan">Day 1</span><span class="capsule red">AST Check</span></div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:20px;margin-bottom:6px">&#9888;</div>
+        <h4 style="font-size:13px;font-weight:600">Exception Handling</h4>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px"><code>try &sol; except &sol; finally</code> blocks</p>
+        <div class="capsule-row" style="margin-top:8px"><span class="capsule red">Critical</span><span class="capsule cyan">Day 1</span></div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:20px;margin-bottom:6px">&#128451;</div>
+        <h4 style="font-size:13px;font-weight:600">Basic SQL</h4>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px"><code>SELECT</code>, <code>INSERT</code>, <code>CREATE TABLE</code></p>
+        <div class="capsule-row" style="margin-top:8px"><span class="capsule cyan">Day 6</span></div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:20px;margin-bottom:6px">&#127760;</div>
+        <h4 style="font-size:13px;font-weight:600">HTTP &amp; JSON</h4>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">GET &sol; POST, status codes, JSON parsing</p>
+        <div class="capsule-row" style="margin-top:8px"><span class="capsule cyan">Day 1</span></div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:20px;margin-bottom:6px">&#9000;</div>
+        <h4 style="font-size:13px;font-weight:600">Command Line</h4>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Running scripts, navigating directories</p>
+        <div class="capsule-row" style="margin-top:8px"><span class="capsule cyan">Setup</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding:16px;background:rgba(254,202,87,0.06);border:1px solid rgba(254,202,87,0.15);border-radius:8px;font-size:13px;color:var(--text-secondary)">
+      <strong style="color:var(--accent-gold)">&#9654; If you're not fluent in all of the above:</strong>
+      Start Days 1&ndash;3 in <em>learning mode</em> (score is informational, not blocking)
+      until you're comfortable enough to attempt a real pass.
+    </div>
+  </div>
+</section>
+
+<!-- ─── Phase 1 ─── -->
+<section class="section" id="phase1">
+  <div class="container">
+    <div class="section-label">&#9312; Phase 1</div>
+    <h2 class="section-title">Data Ingestion &amp; Foundational Risk Math</h2>
+    <p class="section-desc" style="max-width:680px">
+      <strong style="color:var(--accent-cyan)">Days 1&ndash;30</strong> &mdash;
+      You are a data pipeline. Fetch, calculate, log, repeat. Build reliable data
+      ingestion systems, implement technical indicators from scratch, and master
+      double-entry ledger logging.
+    </p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p1">DAYS 1&ndash;5</div>
+        <div class="phase-title">REST API Data Ingestion</div>
+        <div class="phase-subtitle">urllib, JSON, error handling</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">SMA</span>
+        <span class="capsule green">Error Handling</span>
+        <span class="capsule gold">Rate Limiting</span>
+        <span class="capsule purple">Type Annotations</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">1</td><td>Fetch BTC/USD order book</td><td><code>urllib.request</code>, JSON parsing, try-except</td></tr>
+          <tr><td class="span-cell">2</td><td>Calculate SMA(5) and SMA(20)</td><td>Sliding window, list operations, precision</td></tr>
+          <tr><td class="span-cell">3</td><td>Ledger reconciliation</td><td>Double-entry verification, P&amp;L calculation</td></tr>
+          <tr><td class="span-cell">4</td><td>Poll with backoff</td><td>Exponential backoff, rate limit handling</td></tr>
+          <tr><td class="span-cell">5</td><td>Summary pipeline</td><td>30-iteration loop, stdout formatting</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p1">DAYS 6&ndash;10</div>
+        <div class="phase-title">Technical Indicators</div>
+        <div class="phase-subtitle">Indicators from scratch, no libraries</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">EMA</span>
+        <span class="capsule green">Bollinger Bands</span>
+        <span class="capsule gold">RSI</span>
+        <span class="capsule purple">Vectorized Ops</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">6</td><td>EMA calculation</td><td>Exponential weighting, smoothing factor</td></tr>
+          <tr><td class="span-cell">7</td><td>Bollinger Bands</td><td>Rolling stdev, upper/lower bands, bandwidth</td></tr>
+          <tr><td class="span-cell">8</td><td>RSI</td><td>Gain/loss averaging, overbought/oversold</td></tr>
+          <tr><td class="span-cell">9</td><td>Multi-indicator output</td><td>Combined table, cross-validation</td></tr>
+          <tr><td class="span-cell">10</td><td>Indicator suite</td><td>All indicators in one pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p1">DAYS 11&ndash;20</div>
+        <div class="phase-title">Ledger Mastery &amp; Risk Metrics</div>
+        <div class="phase-subtitle">SQLite, double-entry, statistical measures</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">SQLite</span>
+        <span class="capsule green">Double-Entry</span>
+        <span class="capsule gold">Sharpe Ratio</span>
+        <span class="capsule red">Max Drawdown</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">11&ndash;15</td><td>SQLite schema &amp; aggregation</td><td>Schema design, JOINs, GROUP BY, window functions</td></tr>
+          <tr><td class="span-cell">16&ndash;20</td><td>Statistical risk metrics</td><td>Variance, stdev, Sharpe ratio, max drawdown</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p1">DAYS 21&ndash;30</div>
+        <div class="phase-title">Pipeline Architecture &amp; Capstone</div>
+        <div class="phase-subtitle">Production-ready data pipelines</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">Batching</span>
+        <span class="capsule green">Windowing</span>
+        <span class="capsule gold">Streaming</span>
+        <span class="capsule red">Capstone</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">21&ndash;25</td><td>Pipeline optimization</td><td>Memory-efficient streaming, batching strategies</td></tr>
+          <tr><td class="span-cell">26&ndash;30</td><td><strong>Phase 1 Capstone</strong></td><td>End-to-end ingestion &rarr; calculation &rarr; logging. All critical AST checks must pass.</td></tr>
+        </tbody>
+      </table>
+      <div class="fail-mode">
+        <strong>Common failure modes in Phase 1:</strong>
+        <li>Missing try-except on network calls &mdash; <strong style="color:var(--accent-red)">automatic 0</strong></li>
+        <li>O(n&sup2;) nested loops on large datasets &mdash; AST warning &rarr; &minus;10 pts</li>
+        <li>Ledger imbalance (debits &ne; credits) &mdash; test failure &rarr; &minus;30 pts</li>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Phase 2 ─── -->
+<section class="section" id="phase2">
+  <div class="container">
+    <div class="section-label">&#9313; Phase 2</div>
+    <h2 class="section-title">Arbitrage Logic</h2>
+    <p class="section-desc" style="max-width:680px">
+      <strong style="color:var(--accent-gold)">Days 31&ndash;60</strong> &mdash;
+      Find the spread. Execute before it's gone. Cross-exchange detection,
+      triangular arbitrage cycles, position sizing, and real-time execution.
+    </p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p2">DAYS 31&ndash;40</div>
+        <div class="phase-title">Cross-Exchange Arbitrage</div>
+        <div class="phase-subtitle">Spread detection, fee-aware execution</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">Spread Detection</span>
+        <span class="capsule green">Execution</span>
+        <span class="capsule gold">Position Sizing</span>
+        <span class="capsule purple">Fee Modeling</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">31&ndash;35</td><td>Cross-exchange detection</td><td>Poll PRIMARY vs SECONDARY, calculate spread, threshold detection</td></tr>
+          <tr><td class="span-cell">36&ndash;40</td><td>Arbitrage execution</td><td>POST &sol;v1/execute, fee-aware P&amp;L, fill tracking</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p2">DAYS 41&ndash;55</div>
+        <div class="phase-title">Triangular Arbitrage &amp; Risk Controls</div>
+        <div class="phase-subtitle">Multi-asset cycles, Kelly Criterion, slippage</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">Triangular Arb</span>
+        <span class="capsule green">Kelly Criterion</span>
+        <span class="capsule gold">Stop-Loss</span>
+        <span class="capsule red">Slippage</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">41&ndash;45</td><td>Triangular arbitrage</td><td>3-asset cycles (BTC&rarr;ETH&rarr;USDT&rarr;BTC), rate conversion, opportunity scanning</td></tr>
+          <tr><td class="span-cell">46&ndash;50</td><td>Risk controls</td><td>Kelly Criterion sizing, stop-loss, max exposure</td></tr>
+          <tr><td class="span-cell">51&ndash;55</td><td>Latency &amp; slippage</td><td>Timestamp diff analysis, fill probability, slippage models</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p2">DAYS 56&ndash;60</div>
+        <div class="phase-title">Phase 2 Capstone</div>
+        <div class="phase-subtitle">Real-time triangular scanner with auto-execution</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule red">Capstone</span>
+        <span class="capsule cyan">Real-Time</span>
+        <span class="capsule green">Auto-Execute</span>
+        <span class="capsule gold">Reconciliation</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">56&ndash;60</td><td><strong>Phase 2 Capstone</strong></td><td>Real-time triangular scanner with auto-execution, risk limits, full ledger reconciliation</td></tr>
+        </tbody>
+      </table>
+      <div class="fail-mode">
+        <strong>Common failure modes in Phase 2:</strong>
+        <li>Trading without checking spread threshold &mdash; logic error &rarr; test failure</li>
+        <li>Executing without sufficient balance &mdash; ledger inconsistency</li>
+        <li>Missing fee calculations in P&amp;L &mdash; SOCPA compliance violation</li>
+        <li>No rate limiting on exchange calls &mdash; simulated ban &rarr; day reset</li>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Phase 3 ─── -->
+<section class="section" id="phase3">
+  <div class="container">
+    <div class="section-label">&#9314; Phase 3</div>
+    <h2 class="section-title">Slippage &amp; SOCPA Compliance</h2>
+    <p class="section-desc" style="max-width:680px">
+      <strong style="color:var(--accent-red)">Days 61&ndash;90</strong> &mdash;
+      It's not enough to be profitable. You must be provably correct. Audit trails,
+      IFRS 9 reporting, VaR &amp; CVaR, and a final 5-day audit simulation.
+    </p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p3">DAYS 61&ndash;70</div>
+        <div class="phase-title">SOCPA Audit Trails &amp; IFRS 9</div>
+        <div class="phase-subtitle">Compliance and financial instrument reporting</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">SOCPA</span>
+        <span class="capsule green">IFRS 9</span>
+        <span class="capsule gold">Audit Trails</span>
+        <span class="capsule red">Disclosures</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">61&ndash;65</td><td>SOCPA audit trails</td><td>Provenance records, timestamps, authorization chains</td></tr>
+          <tr><td class="span-cell">66&ndash;70</td><td>IFRS 9 reporting</td><td>Instrument classification, impairment, disclosure notes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p3">DAYS 71&ndash;85</div>
+        <div class="phase-title">VaR, CVaR &amp; System Resilience</div>
+        <div class="phase-subtitle">Risk analytics and hardened systems</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule cyan">VaR</span>
+        <span class="capsule green">CVaR</span>
+        <span class="capsule gold">Stress Testing</span>
+        <span class="capsule red">Resilience</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">71&ndash;75</td><td>VaR &amp; CVaR</td><td>Historical simulation VaR (95%/99%), expected shortfall, stress scenarios</td></tr>
+          <tr><td class="span-cell">76&ndash;80</td><td>Compliance reports</td><td>Automated report generation, auditor-ready output</td></tr>
+          <tr><td class="span-cell">81&ndash;85</td><td>System resilience</td><td>Graceful degradation, outage handling, data recovery</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-number p3">DAYS 86&ndash;90</div>
+        <div class="phase-title">Final Capstone</div>
+        <div class="phase-subtitle">5-day external audit simulation</div>
+      </div>
+      <div class="capsule-row">
+        <span class="capsule red">Capstone</span>
+        <span class="capsule cyan">Audit</span>
+        <span class="capsule green">Compliance</span>
+        <span class="capsule gold">Reconciliation</span>
+      </div>
+      <table class="phase-week-table">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key Skills</th></tr></thead>
+        <tbody>
+          <tr><td class="span-cell">86&ndash;90</td><td><strong>Final Capstone</strong></td><td>Full audit simulation: run all 90 days, produce complete compliance package, pass external audit</td></tr>
+        </tbody>
+      </table>
+      <div class="fail-mode">
+        <strong>Failure in Phase 3 means:</strong>
+        <li>Missing audit timestamps &mdash; <strong style="color:var(--accent-red)">automatic 0, SOCPA violation</strong></li>
+        <li>IFRS classification errors &mdash; test failure &rarr; &minus;30 pts</li>
+        <li>VaR calculation off by &gt;1% &mdash; precision failure &rarr; day reset</li>
+        <li>Any ledger imbalance after reconciliation &mdash; compliance breach</li>
+        <li>System crash during exchange downtime &mdash; resilience failure</li>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Weekly Schedule ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">&#128197; Schedule</div>
+    <h2 class="section-title">Weekly Rhythm</h2>
+    <p class="section-desc">Each week follows a predictable cadence. Total commitment: 4&ndash;8 hours per week for most participants.</p>
+
+    <div class="schedule-grid">
+      <div class="schedule-day">
+        <div class="day-name">Monday</div>
+        <div class="activity">Receive Briefing</div>
+        <div class="time">15 min</div>
+      </div>
+      <div class="schedule-day">
+        <div class="day-name">Tuesday</div>
+        <div class="activity">Write Solution</div>
+        <div class="time">1&ndash;3 hrs</div>
+      </div>
+      <div class="schedule-day">
+        <div class="day-name">Wednesday</div>
+        <div class="activity">Debug &amp; Iterate</div>
+        <div class="time">1&ndash;2 hrs</div>
+      </div>
+      <div class="schedule-day">
+        <div class="day-name">Thursday</div>
+        <div class="activity">EOD &amp; Fix</div>
+        <div class="time">1&ndash;2 hrs</div>
+      </div>
+      <div class="schedule-day">
+        <div class="day-name">Friday</div>
+        <div class="activity">Advance &amp; Review</div>
+        <div class="time">30 min</div>
+      </div>
+      <div class="schedule-day weekend">
+        <div class="day-name">Saturday</div>
+        <div class="activity">Optional: Refactor</div>
+        <div class="time">&mdash;</div>
+      </div>
+      <div class="schedule-day weekend">
+        <div class="day-name">Sunday</div>
+        <div class="activity">Rest / Catch Up</div>
+        <div class="time">&mdash;</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Scoring ─── -->
+<section class="section" id="scoring">
+  <div class="container">
+    <div class="section-label">&#127919; Scoring</div>
+    <h2 class="section-title">Score = max(0, 100 &minus; deductions)</h2>
+    <p class="section-desc">You start at 100. Every violation or failure deducts from your score. Two critical AST violations = automatic 0. You need 100 to advance.</p>
+
+    <table class="score-table">
+      <thead>
+        <tr><th>Component</th><th>Deduction</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span style="color:var(--accent-red)">&#9679; AST Critical Violation</span></td>
+          <td class="weight" style="color:var(--accent-red)">&minus;40</td>
+          <td>No try-except on network calls, eval/exec, prohibited imports. <strong>Two = automatic 0.</strong></td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--accent-gold)">&#9679; AST Warning</span></td>
+          <td class="weight" style="color:var(--accent-gold)">&minus;10</td>
+          <td>Nested loops, missing annotations, division by zero, infinite loops, global state</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--accent-red)">&#9679; Test Failure</span></td>
+          <td class="weight" style="color:var(--accent-red)">&minus;30</td>
+          <td>Hidden test suite checks functional correctness of your solution</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--accent-red)">&#9679; Ledger Imbalance</span></td>
+          <td class="weight" style="color:var(--accent-red)">&minus;30</td>
+          <td>Double-entry verification failure (debits &ne; credits)</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--text-muted)">&#9679; Manual Deductions</span></td>
+          <td class="weight" style="color:var(--text-muted)">Variable</td>
+          <td>Principal Strategist may apply situational penalties for egregious violations</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">1 Critical</div>
+        <div style="font-size:36px;font-weight:900;color:var(--accent-red);margin:4px 0">60</div>
+        <div style="font-size:11px;color:var(--text-muted)">Score = 100 &minus; 40</div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">2 Criticals</div>
+        <div style="font-size:36px;font-weight:900;color:var(--accent-red);margin:4px 0">0</div>
+        <div style="font-size:11px;color:var(--text-muted)">Automatic zero, day reset</div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">1 Warning</div>
+        <div style="font-size:36px;font-weight:900;color:var(--accent-gold);margin:4px 0">90</div>
+        <div style="font-size:11px;color:var(--text-muted)">Not enough to advance</div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">Perfect Day</div>
+        <div style="font-size:36px;font-weight:900;color:var(--accent-green);margin:4px 0">100</div>
+        <div style="font-size:11px;color:var(--text-muted)">You advance</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── AST Auditor ─── -->
+<section class="section" id="auditor">
+  <div class="container">
+    <div class="section-label">&#9881; AST Auditor</div>
+    <h2 class="section-title">What Gets Checked</h2>
+    <p class="section-desc">The AST auditor parses your Python code into an abstract syntax tree and runs 9 pattern-matching checks. Every EOD evaluation runs through this gauntlet.</p>
+
+    <div class="ast-grid">
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot critical"></span>
+          <span class="sev" style="color:var(--accent-red)">Critical</span>
+          <span class="penalty" style="color:var(--accent-red)">&minus;40</span>
+        </div>
+        <code class="ast-code">NO_NETWORK_EXCEPT</code>
+        <div class="ast-desc"><code>urllib.request.urlopen()</code> or <code>Request()</code> without <code>try</code>. Exchange goes down = your pipeline crashes.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot critical"></span>
+          <span class="sev" style="color:var(--accent-red)">Critical</span>
+          <span class="penalty" style="color:var(--accent-red)">&minus;40</span>
+        </div>
+        <code class="ast-code">EVAL_EXEC</code>
+        <div class="ast-desc"><code>eval(...)</code> or <code>exec(...)</code> detected. Arbitrary code execution is a security risk and SOCPA violation.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot critical"></span>
+          <span class="sev" style="color:var(--accent-red)">Critical</span>
+          <span class="penalty" style="color:var(--accent-red)">&minus;40</span>
+        </div>
+        <code class="ast-code">PROHIBITED_IMPORT</code>
+        <div class="ast-desc"><code>pickle</code>, <code>shelve</code>, <code>marshal</code> &mdash; deserialization vulnerabilities that compromise audit integrity.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot warning"></span>
+          <span class="sev" style="color:var(--accent-gold)">Warning</span>
+          <span class="penalty" style="color:var(--accent-gold)">&minus;10</span>
+        </div>
+        <code class="ast-code">NESTED_LOOP</code>
+        <div class="ast-desc"><code>for i in range(n): for j in range(m):</code> &mdash; O(n&sup2;) complexity that doesn't scale to production datasets.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot warning"></span>
+          <span class="sev" style="color:var(--accent-gold)">Warning</span>
+          <span class="penalty" style="color:var(--accent-gold)">&minus;10</span>
+        </div>
+        <code class="ast-code">DIVISION_BY_ZERO</code>
+        <div class="ast-desc"><code>a / b</code> without a <code>b != 0</code> guard. Runtime crash waiting to happen.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot warning"></span>
+          <span class="sev" style="color:var(--accent-gold)">Warning</span>
+          <span class="penalty" style="color:var(--accent-gold)">&minus;10</span>
+        </div>
+        <code class="ast-code">INFINITE_WHILE</code>
+        <div class="ast-desc"><code>while True:</code> without a <code>break</code> statement. Never-terminating loop that hangs the pipeline.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot warning"></span>
+          <span class="sev" style="color:var(--accent-gold)">Warning</span>
+          <span class="penalty" style="color:var(--accent-gold)">&minus;10</span>
+        </div>
+        <code class="ast-code">GLOBAL_STATE</code>
+        <div class="ast-desc"><code>global x</code> at module level. Side effects make code untestable and unpredictable.</div>
+      </div>
+
+      <div class="ast-card">
+        <div class="ast-header">
+          <span class="dot info"></span>
+          <span class="sev" style="color:var(--accent-cyan)">Info</span>
+          <span class="penalty" style="color:var(--text-muted)">&minus;0</span>
+        </div>
+        <code class="ast-code">MISSING_ANNOTATION</code>
+        <div class="ast-desc">Function parameter or return value without a type hint. PEP 484 compliance is expected.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Standards ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">&#9878; Standards</div>
+    <h2 class="section-title">Three Professional Frameworks</h2>
+    <p class="section-desc">The simulator enforces real-world accounting and financial standards. Understanding them is part of the training.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:20px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px">
+        <div style="font-size:22px;margin-bottom:6px;color:var(--accent-cyan)">CMA</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;font-weight:500;letter-spacing:0.3px">Certified Management Accountant</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+          <strong style="color:var(--text-primary)">Part 1:</strong> Financial Planning, Performance &amp; Analytics<br>
+          &nbsp;&nbsp;Section C: Financial Statement Analysis<br>
+          &nbsp;&nbsp;Section E: Investment Decisions<br>
+          <strong style="color:var(--text-primary)">Part 2:</strong> Strategic Financial Management<br>
+          &nbsp;&nbsp;Section A: Financial Statement Analysis<br>
+          &nbsp;&nbsp;Section D: Risk Management
+        </div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px">
+        <div style="font-size:22px;margin-bottom:6px;color:var(--accent-gold)">SOCPA</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;font-weight:500;letter-spacing:0.3px">Saudi Org. for Chartered &amp; Professional Accountants</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+          Standard 4: Documentation and audit trail requirements<br>
+          Standard 7: Financial instrument recognition and measurement<br>
+          Standard 12: Revenue recognition and trade recording
+        </div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px">
+        <div style="font-size:22px;margin-bottom:6px;color:var(--accent-purple)">IFRS</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;font-weight:500;letter-spacing:0.3px">International Financial Reporting Standards</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+          IFRS 9: Financial Instruments &mdash; classification, measurement, impairment<br>
+          IFRS 13: Fair Value Measurement &mdash; hierarchy levels, disclosure<br>
+          IFRS 15: Revenue from Contracts with Customers &mdash; trade revenue recognition
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Resources ─── -->
+<section class="section" id="resources">
+  <div class="container">
+    <div class="section-label">&#128218; Resources</div>
+    <h2 class="section-title">Everything You Need</h2>
+    <p class="section-desc">The simulator uses only Python's standard library. External concepts link to free references.</p>
+
+    <h3 style="font-size:15px;font-weight:600;margin-top:24px;margin-bottom:8px">Python Standard Library</h3>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <h4><code>urllib.request</code></h4>
+        <span class="use">HTTP GET/POST to mock exchange</span>
+        <span class="days">Days 1&ndash;60</span>
+      </div>
+      <div class="resource-card">
+        <h4><code>urllib.error</code></h4>
+        <span class="use">HTTP error handling</span>
+        <span class="days">Days 1&ndash;60</span>
+      </div>
+      <div class="resource-card">
+        <h4><code>json</code></h4>
+        <span class="use">Parse exchange responses</span>
+        <span class="days">Days 1&ndash;90</span>
+      </div>
+      <div class="resource-card">
+        <h4><code>sqlite3</code></h4>
+        <span class="use">Ledger database</span>
+        <span class="days">Days 1&ndash;90</span>
+      </div>
+      <div class="resource-card">
+        <h4><code>math</code></h4>
+        <span class="use">Statistical calculations</span>
+        <span class="days">Days 11&ndash;30, 71&ndash;75</span>
+      </div>
+      <div class="resource-card">
+        <h4><code>statistics</code></h4>
+        <span class="use">Mean, stdev for risk metrics</span>
+        <span class="days">Days 16&ndash;20</span>
+      </div>
+      <div class="resource-card" style="grid-column:span 1">
+        <h4><code>ast</code> / <code>threading</code> / <code>subprocess</code></h4>
+        <span class="use">Used internally by simulator (understanding only)</span>
+        <span class="days">&mdash;</span>
+      </div>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:600;margin-top:28px;margin-bottom:8px">External Concepts</h3>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <h4>SMA / EMA</h4>
+        <span class="use">Days 1&ndash;10 &mdash; Investopedia: Moving Average</span>
+      </div>
+      <div class="resource-card">
+        <h4>Bollinger Bands</h4>
+        <span class="use">Days 6&ndash;10 &mdash; Investopedia: Bollinger Bands</span>
+      </div>
+      <div class="resource-card">
+        <h4>Sharpe Ratio</h4>
+        <span class="use">Days 16&ndash;20 &mdash; Wikipedia: Sharpe Ratio</span>
+      </div>
+      <div class="resource-card">
+        <h4>Cross-Exchange Arbitrage</h4>
+        <span class="use">Days 31&ndash;35 &mdash; QuantConnect: Arbitrage</span>
+      </div>
+      <div class="resource-card">
+        <h4>Triangular Arbitrage</h4>
+        <span class="use">Days 41&ndash;45 &mdash; Binance Academy</span>
+      </div>
+      <div class="resource-card">
+        <h4>Kelly Criterion</h4>
+        <span class="use">Days 46&ndash;50 &mdash; Investopedia</span>
+      </div>
+      <div class="resource-card">
+        <h4>Value at Risk (VaR)</h4>
+        <span class="use">Days 71&ndash;75 &mdash; CFA Institute</span>
+      </div>
+      <div class="resource-card">
+        <h4>CVaR / Expected Shortfall</h4>
+        <span class="use">Days 71&ndash;75 &mdash; Wikipedia</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Progress ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">&#128200; Progress</div>
+    <h2 class="section-title">Tracking Your Journey</h2>
+    <p class="section-desc">The built-in <code>status</code> command shows your cumulative record. The goal is a perfect run.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="tl-phase">Day 30 &mdash; End of Phase 1</div>
+        <div class="tl-title">Data Ingestion &amp; Risk Math</div>
+        <div class="tl-desc">30&sol;30 days passed &middot; 3000&sol;3000 cumulative score &middot; All critical AST checks passing</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-phase">Day 60 &mdash; End of Phase 2</div>
+        <div class="tl-title">Arbitrage Logic</div>
+        <div class="tl-desc">60&sol;60 days passed &middot; 6000&sol;6000 cumulative score &middot; Real-time scanner operational</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-phase">Day 90 &mdash; Graduation</div>
+        <div class="tl-title">SOCPA Compliance &amp; Final Capstone</div>
+        <div class="tl-desc">90&sol;90 days passed &middot; 9000&sol;9000 cumulative score &middot; Compliance package generated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Graduation ─── -->
+<section class="section" id="graduation" style="border-bottom:none">
+  <div class="container">
+    <div class="section-label">&#127942; Graduation</div>
+    <h2 class="section-title">What It Takes to Finish</h2>
+    <p class="section-desc">The program is designed to be brutal. Finishing is a genuine achievement.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:20px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:8px">&#9989;</div>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:6px">All 90 Days at 100</h4>
+        <p style="font-size:12px;color:var(--text-muted)">Every single day passed with a perfect score. No warnings, no criticals.</p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:8px">&#9989;</div>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:6px">Zero Critical Violations</h4>
+        <p style="font-size:12px;color:var(--text-muted)">Every network call wrapped, no eval/exec, no prohibited imports across all 90 days.</p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:8px">&#9989;</div>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:6px">Ledger Always Balanced</h4>
+        <p style="font-size:12px;color:var(--text-muted)">Double-entry bookkeeping verified after every single day. Debits always equal credits.</p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:8px">&#9989;</div>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:6px">Compliance Package Generated</h4>
+        <p style="font-size:12px;color:var(--text-muted)">Final capstone produces a complete, auditor-ready compliance report covering all 90 days.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;padding:20px;background:linear-gradient(135deg,rgba(10,189,227,0.06),rgba(72,219,251,0.03));border:1px solid rgba(72,219,251,0.15);border-radius:10px;text-align:center">
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+        <strong style="color:var(--accent-cyan)">Graduates receive:</strong><br>
+        Completion certificate (generated by the simulator on Day 90)<br>
+        Their name added to the NovaCap &ldquo;Honor Roll&rdquo;<br>
+        The satisfaction of surviving the most demanding Python training simulation ever built
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Outro ─── -->
+<div class="outro-quote">
+  <p>&ldquo;This is not a course. This is a simulation of<br>the most demanding trading desk in the region.&rdquo;</p>
+  <div class="attr">&mdash; Principal Strategist, NovaCap Financial Technologies Ltd.</div>
+</div>
+
+<!-- ─── Footer ─── -->
+<footer class="footer">
+  <div class="container">
+    <p>Principal Strategist &mdash; 90-Day FinTech Arbitrage Training Program v1.0.0</p>
+    <p style="margin-top:6px">
+      <a href="PRODUCT.md">Product Details</a> &middot;
+      <a href="EULA.md">License Agreement</a> &middot;
+      <a href="promo.html">Landing Page</a> &middot;
+      <a href="http://localhost:8081">Live Dashboard</a>
+    </p>
+    <p style="margin-top:6px;font-size:10px">Python Standard Library &middot; CMA &copy; IMA &middot; SOCPA &copy; SOCPA &middot; IFRS &copy; IFRS Foundation</p>
+  </div>
+</footer>
+
+</body>
+</html>

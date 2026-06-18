@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaCap — Documentation PDFs</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-primary: #060a12;
+    --bg-secondary: #0a0e17;
+    --bg-card: #0f1525;
+    --border: #152030;
+    --border-light: #1a3050;
+    --text-primary: #dfe6e9;
+    --text-secondary: #8395a7;
+    --text-muted: #4a5a6a;
+    --accent-cyan: #48dbfb;
+    --accent-blue: #0abde3;
+    --accent-green: #2ecc71;
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  .bg-grid {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(72, 219, 251, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(72, 219, 251, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container { max-width: 720px; width: 100%; position: relative; z-index: 1; }
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .logo {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .header p a { color: var(--accent-cyan); text-decoration: none; }
+  .header p a:hover { text-decoration: underline; }
+  .pdf-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .pdf-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .pdf-card:hover {
+    border-color: var(--accent-cyan);
+    background: rgba(15, 21, 37, 0.8);
+    transform: translateX(3px);
+  }
+  .pdf-icon { font-size: 28px; flex-shrink: 0; }
+  .pdf-info { flex: 1; min-width: 0; }
+  .pdf-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .pdf-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .pdf-arrow {
+    color: var(--text-muted);
+    font-size: 20px;
+    transition: transform 0.2s, color 0.2s;
+  }
+  .pdf-card:hover .pdf-arrow {
+    color: var(--accent-cyan);
+    transform: translateX(4px);
+  }
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    width: 100%;
+  }
+  .footer a { color: var(--accent-cyan); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  @media (max-width: 500px) {
+    .header h1 { font-size: 24px; }
+    .pdf-card { padding: 14px 16px; }
+    .pdf-icon { font-size: 22px; }
+    .pdf-name { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="header">
+    <div class="logo">NovaCap Financial Technologies</div>
+    <h1>Documentation &amp; Resources</h1>
+    <p>
+      Principal Strategist &mdash; 90-Day FinTech Arbitrage Academy<br>
+      <a href="http://localhost:8081">Launch Web Dashboard</a>
+      &middot;
+      <a href="http://localhost:8080">Mock Exchange</a>
+    </p>
+  </div>
+  <div class="pdf-grid">
+    
+    <a href="before-you-begin.pdf" class="pdf-card">
+      <span class="pdf-icon">🚀</span>
+      <div class="pdf-info">
+        <div class="pdf-name">Before You Begin — Prep Guide</div>
+        <div class="pdf-meta">before-you-begin.pdf &middot; 1.4 MB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+    <a href="eula.pdf" class="pdf-card">
+      <span class="pdf-icon">⚖️</span>
+      <div class="pdf-info">
+        <div class="pdf-name">End-User License Agreement</div>
+        <div class="pdf-meta">eula.pdf &middot; 152 KB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+    <a href="product.pdf" class="pdf-card">
+      <span class="pdf-icon">📋</span>
+      <div class="pdf-info">
+        <div class="pdf-name">Product Documentation (README)</div>
+        <div class="pdf-meta">product.pdf &middot; 964 KB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+    <a href="promo.pdf" class="pdf-card">
+      <span class="pdf-icon">🎯</span>
+      <div class="pdf-info">
+        <div class="pdf-name">Product Landing Page</div>
+        <div class="pdf-meta">promo.pdf &middot; 1.4 MB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+    <a href="sales-page.pdf" class="pdf-card">
+      <span class="pdf-icon">💰</span>
+      <div class="pdf-info">
+        <div class="pdf-name">Sales Page / Listing Copy</div>
+        <div class="pdf-meta">sales-page.pdf &middot; 151 KB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+    <a href="training-program-md.pdf" class="pdf-card">
+      <span class="pdf-icon">📖</span>
+      <div class="pdf-info">
+        <div class="pdf-name">Training Program Syllabus (Markdown)</div>
+        <div class="pdf-meta">training-program-md.pdf &middot; 343 KB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+    <a href="training-program.pdf" class="pdf-card">
+      <span class="pdf-icon">📚</span>
+      <div class="pdf-info">
+        <div class="pdf-name">Training Program Syllabus (HTML)</div>
+        <div class="pdf-meta">training-program.pdf &middot; 1.5 MB</div>
+      </div>
+      <span class="pdf-arrow">&rarr;</span>
+    </a>
+  </div>
+  <div class="footer">
+    Generated on 2026-06-19 &middot;
+    <a href="generate_pdfs.py">Re-generate script</a> &middot;
+    Python standard library only
+  </div>
+</div>
+</body>
+</html>

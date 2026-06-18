@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaCap Principal Strategist — 90-Day Arbitrage Protocol</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #060a12;
+    --bg-secondary: #0a0e17;
+    --bg-card: #0f1525;
+    --bg-code: #060a12;
+    --border: #152030;
+    --border-light: #1a3050;
+    --text-primary: #dfe6e9;
+    --text-secondary: #8395a7;
+    --text-muted: #4a5a6a;
+    --accent-cyan: #48dbfb;
+    --accent-blue: #0abde3;
+    --accent-green: #2ecc71;
+    --accent-red: #ff6b6b;
+    --accent-gold: #feca57;
+    --accent-purple: #a29bfe;
+    --gradient-cyan: linear-gradient(135deg, #0abde3, #48dbfb);
+    --gradient-green: linear-gradient(135deg, #00b894, #2ecc71);
+    --gradient-gold: linear-gradient(135deg, #e17055, #fdcb6e);
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── Animated Background ─── */
+  .bg-grid {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(72, 219, 251, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(72, 219, 251, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-glow {
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse, rgba(10, 189, 227, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── Layout ─── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ─── Hero ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 24px;
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(72, 219, 251, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(72, 219, 251, 0.2);
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .gradient {
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero h1 .outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--accent-cyan);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(16px, 2vw, 22px);
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin-bottom: 12px;
+    font-weight: 300;
+  }
+
+  .hero-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .hero-tags span {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .hero-cta {
+    margin-top: 40px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--gradient-cyan);
+    color: var(--bg-primary);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 24px rgba(10, 189, 227, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent-cyan);
+    background: rgba(72, 219, 251, 0.05);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+    color: var(--text-muted);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ─── Terminal Mockup ─── */
+  .terminal-mock {
+    margin: 60px auto 0;
+    max-width: 800px;
+    background: #000;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #0a0e17;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+
+  .terminal-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 8px;
+  }
+
+  .terminal-body {
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    text-align: left;
+  }
+
+  .terminal-line { white-space: pre-wrap; word-break: break-all; }
+  .terminal-line .cyan { color: var(--accent-cyan); }
+  .terminal-line .green { color: var(--accent-green); }
+  .terminal-line .gold { color: var(--accent-gold); }
+  .terminal-line .red { color: var(--accent-red); }
+  .terminal-line .gray { color: var(--text-muted); }
+  .terminal-line .white { color: var(--text-primary); }
+  .terminal-line .dim { color: #3a4a5a; }
+  .terminal-prompt { color: var(--accent-cyan); }
+
+  /* ─── Section ─── */
+  .section {
+    padding: 100px 0;
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 680px;
+    line-height: 1.8;
+  }
+
+  /* ─── Features Grid ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: all 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(72, 219, 251, 0.2);
+    background: rgba(15, 21, 37, 0.8);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .feature-card .tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .feature-card .tags span {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    background: rgba(72, 219, 251, 0.06);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(72, 219, 251, 0.1);
+  }
+
+  /* ─── Screenshot Showcase ─── */
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+    gap: 28px;
+    margin-top: 48px;
+  }
+
+  .showcase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .showcase-card:hover {
+    border-color: rgba(72, 219, 251, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  }
+
+  .showcase-preview {
+    background: var(--bg-code);
+    border-bottom: 1px solid var(--border);
+    padding: 20px;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow: hidden;
+  }
+
+  .showcase-caption {
+    padding: 16px 20px;
+  }
+
+  .showcase-caption h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .showcase-caption p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ─── Mock Dashboard ─── */
+  .mock-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .mock-dashboard .stat {
+    background: rgba(8, 14, 24, 0.8);
+    border: 1px solid rgba(18, 30, 48, 0.6);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .mock-dashboard .stat .label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .mock-dashboard .stat .value {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .mock-dashboard .stat .value.cyan { color: var(--accent-cyan); }
+  .mock-dashboard .stat .value.green { color: var(--accent-green); }
+  .mock-dashboard .stat .value.gold { color: var(--accent-gold); }
+
+  .mock-orderbook {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .mock-orderbook .side h5 {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .mock-orderbook .side.bids h5 { color: var(--accent-green); }
+  .mock-orderbook .side.asks h5 { color: var(--accent-red); }
+
+  .mock-orderbook .level {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 11px;
+  }
+
+  .mock-orderbook .level .price { color: var(--text-primary); }
+  .mock-orderbook .level .qty { color: var(--text-muted); }
+  .mock-orderbook .spread-row {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 10px;
+    color: var(--accent-cyan);
+    padding: 6px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mock-ledger-table {
+    width: 100%;
+    font-size: 11px;
+    border-collapse: collapse;
+  }
+
+  .mock-ledger-table th {
+    text-align: left;
+    padding: 6px 8px;
+    color: var(--text-muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+
+  .mock-ledger-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid rgba(14, 24, 37, 0.5);
+    color: var(--text-secondary);
+  }
+
+  .mock-ledger-table .amt {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .mock-ledger-table .green { color: var(--accent-green); }
+  .mock-ledger-table .red { color: var(--accent-red); }
+
+  /* ─── Code Mock ─── */
+  .code-mock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .code-mock .kw { color: var(--accent-cyan); }
+  .code-mock .str { color: var(--accent-green); }
+  .code-mock .cm { color: var(--text-muted); font-style: italic; }
+  .code-mock .fn { color: var(--accent-purple); }
+  .code-mock .num { color: var(--accent-gold); }
+  .code-mock .dec { color: var(--accent-red); }
+  .code-mock .line-num {
+    display: inline-block;
+    width: 24px;
+    color: #2a3a4a;
+    user-select: none;
+  }
+
+  /* ─── Architecture ─── */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .arch-module {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .arch-module:hover {
+    border-color: rgba(72, 219, 251, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .arch-module .icon { font-size: 28px; margin-bottom: 8px; }
+  .arch-module h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .arch-module p { font-size: 11px; color: var(--text-muted); }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 20px;
+    padding: 4px 0;
+  }
+
+  /* ─── Stats Row ─── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 48px 0;
+  }
+
+  .stat-big {
+    text-align: center;
+    padding: 32px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .stat-big .number {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-big .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── Exchange API Response ─── */
+  .api-response {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--accent-green);
+    overflow-x: auto;
+  }
+
+  .api-response .key { color: var(--accent-cyan); }
+  .api-response .string { color: var(--accent-green); }
+  .api-response .number { color: var(--accent-gold); }
+  .api-response .brack { color: var(--text-primary); }
+
+  /* ─── Pricing ─── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .pricing-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .pricing-card:hover {
+    border-color: rgba(72, 219, 251, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .pricing-card.featured {
+    border-color: var(--accent-cyan);
+    background: linear-gradient(135deg, rgba(10, 189, 227, 0.06), rgba(72, 219, 251, 0.03));
+  }
+
+  .pricing-card.featured::before {
+    content: "BEST VALUE";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gradient-cyan);
+    color: var(--bg-primary);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 3px 14px;
+    border-radius: 10px;
+  }
+
+  .pricing-card .tier {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .pricing-card .price {
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .pricing-card .price .currency {
+    font-size: 20px;
+    font-weight: 600;
+    vertical-align: super;
+    color: var(--text-muted);
+  }
+
+  .pricing-card .audience {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    min-height: 2.4em;
+  }
+
+  .pricing-card ul {
+    list-style: none;
+    flex: 1;
+    margin-bottom: 20px;
+  }
+
+  .pricing-card ul li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 4px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .pricing-card ul li .check {
+    color: var(--accent-green);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .pricing-card .pricing-btn {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .pricing-card .pricing-btn.primary {
+    background: var(--gradient-cyan);
+    color: var(--bg-primary);
+  }
+
+  .pricing-card .pricing-btn.primary:hover {
+    box-shadow: 0 4px 20px rgba(10, 189, 227, 0.3);
+  }
+
+  .pricing-card .pricing-btn.secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+  }
+
+  .pricing-card .pricing-btn.secondary:hover {
+    border-color: var(--accent-cyan);
+    background: rgba(72, 219, 251, 0.05);
+  }
+
+  .pricing-card .pricing-btn.enterprise {
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+    color: #fff;
+  }
+
+  .pricing-card .pricing-btn.enterprise:hover {
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.3);
+  }
+
+  .pricing-faq {
+    max-width: 680px;
+    margin: 40px auto 0;
+    text-align: left;
+  }
+
+  .pricing-faq details {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+
+  .pricing-faq details summary {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .pricing-faq details summary::after {
+    content: "+";
+    font-size: 18px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+
+  .pricing-faq details[open] summary::after {
+    content: "−";
+  }
+
+  .pricing-faq details p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.7;
+    padding-right: 24px;
+  }
+
+  .pricing-guarantee {
+    text-align: center;
+    margin-top: 32px;
+    padding: 20px;
+    background: rgba(46, 204, 113, 0.04);
+    border: 1px solid rgba(46, 204, 113, 0.15);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--accent-green);
+  }
+
+  .pricing-guarantee strong {
+    font-weight: 700;
+  }
+
+  /* ─── CTA ─── */
+  .cta-section {
+    text-align: center;
+    padding: 120px 24px;
+  }
+
+  .cta-section h2 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+
+  .cta-section p {
+    color: var(--text-secondary);
+    font-size: 16px;
+    max-width: 520px;
+    margin: 0 auto 32px;
+  }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .footer a { color: var(--accent-cyan); text-decoration: none; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .showcase-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .mock-dashboard { grid-template-columns: 1fr; }
+    .mock-orderbook { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 36px; letter-spacing: -1px; }
+    .section { padding: 60px 0; }
+    .terminal-body { font-size: 11px; padding: 14px; }
+  }
+
+  /* ─── Floating nav ─── */
+  .top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(6, 10, 18, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+
+  .top-nav .logo {
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .top-nav nav { display: flex; gap: 20px; }
+  .top-nav nav a {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .top-nav nav a:hover { color: var(--accent-cyan); }
+
+  @media (max-width: 640px) {
+    .top-nav nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Floating Nav ─── -->
+<div class="top-nav">
+  <div class="logo">NovaCap</div>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#cta">Get Started</a>
+  </nav>
+  <a href="http://localhost:8081" class="btn btn-primary" style="padding:8px 16px;font-size:11px">Launch Dashboard &rarr;</a>
+</div>
+
+<!-- ─── Background ─── -->
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- ─── Section: Hero ─── -->
+<section class="hero">
+  <div class="hero-badge">&#9679; v1.0.0 &mdash; Standard Library Only</div>
+  <h1>
+    <span class="gradient">Principal</span><br>
+    <span class="outline">Strategist</span>
+  </h1>
+  <p class="hero-subtitle">
+    A 90-day hard-mode FinTech Arbitrage Specialist simulator &mdash;
+    <em>zero external dependencies, maximum rigor.</em>
+  </p>
+  <div class="hero-tags">
+    <span>Python 3.8+</span>
+    <span>No pip install</span>
+    <span>CMA / SOCPA / IFRS</span>
+    <span>Double-Entry Ledger</span>
+    <span>AST Code Audit</span>
+    <span>Live Web Dashboard</span>
+  </div>
+  <div class="hero-cta">
+    <a href="#screenshots" class="btn btn-primary">See Screenshots</a>
+    <a href="#features" class="btn btn-secondary">Explore Features</a>
+  </div>
+
+  <!-- Terminal Mockup -->
+  <div class="terminal-mock">
+    <div class="terminal-header">
+      <span class="terminal-dot red"></span>
+      <span class="terminal-dot yellow"></span>
+      <span class="terminal-dot green"></span>
+      <span class="terminal-title">NovaCap Principal Strategist &mdash; Arbitrage Academy</span>
+    </div>
+    <div class="terminal-body">
+      <div class="terminal-line"><span class="dim">┌──────────────────────────────────────────────────────────────────────────────┐</span></div>
+      <div class="terminal-line"><span class="dim">│</span>  <span class="white">PRINCIPAL STRATEGIST</span>                                                          <span class="dim">│</span></div>
+      <div class="terminal-line"><span class="dim">│</span>  <span class="gray">NovaCap Financial Technologies Ltd. — 90-Day Arbitrage Protocol</span>               <span class="dim">│</span></div>
+      <div class="terminal-line"><span class="dim">└──────────────────────────────────────────────────────────────────────────────┘</span></div>
+      <div class="terminal-line" style="margin-top:8px">  <span class="white">WELCOME, TRAINEE.</span></div>
+      <div class="terminal-line">  <span class="gray">You are enrolled in the NovaCap 90-Day FinTech Arbitrage Protocol.</span></div>
+      <div class="terminal-line">  <span class="gray">Standards enforced: CMA (Certified Management Accountant)</span></div>
+      <div class="terminal-line">  <span class="gray">                     SOCPA (Saudi CPA)</span></div>
+      <div class="terminal-line">  <span class="gray">                     IFRS (International Financial Reporting)</span></div>
+      <div class="terminal-line" style="margin-top:8px">    <span class="white">OBSERVATION:</span> <span class="gray">This is not a course. This is a simulation of</span></div>
+      <div class="terminal-line">    <span class="white">OBSERVATION:</span> <span class="gray">the most demanding trading desk in the region.</span></div>
+      <div class="terminal-line" style="margin-top:8px">  <span class="gold">DIRECTIVE:</span> <span class="white">Type "start" to begin Day 1.</span></div>
+      <div class="terminal-line">  <span class="gray">Type "help" for available commands.</span></div>
+      <div class="terminal-line" style="margin-top:12px"><span class="terminal-prompt">strategist&gt;</span> <span class="white">start</span></div>
+      <div class="terminal-line"><span class="green">  [✓] Starting mock exchange server...</span></div>
+      <div class="terminal-line"><span class="green">  [✓] Exchange operational on :8080</span></div>
+      <div class="terminal-line"><span class="green">  [✓] Day 1 workspace ready</span></div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <span>Scroll to explore</span>
+    <span style="font-size:18px">&darr;</span>
+  </div>
+</section>
+
+<!-- ─── Section: Stats ─── -->
+<section class="section" id="stats" style="padding-top: 60px; padding-bottom: 40px;">
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-big">
+        <div class="number">3,961</div>
+        <div class="label">Lines of Python</div>
+      </div>
+      <div class="stat-big">
+        <div class="number">11</div>
+        <div class="label">Interconnected Modules</div>
+      </div>
+      <div class="stat-big">
+        <div class="number">90</div>
+        <div class="label">Training Days</div>
+      </div>
+      <div class="stat-big">
+        <div class="number">0</div>
+        <div class="label">Pip Dependencies</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Section: Features ─── -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-label">&#9733; Core Modules</div>
+    <h2 class="section-title">Everything in <em>one file</em>.</h2>
+    <p class="section-desc">
+      A single Python script (3,961 lines) containing every module — no imports,
+      no pip install, no setup. Written for Python 3.8+ on any OS.
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(72,219,251,0.1);color:var(--accent-cyan);">&#9670;</div>
+        <h3>Mock Exchange Server</h3>
+        <p>Threaded HTTP server on <code>:8080</code> simulating a financial exchange. Serves real-time order books, tickers, trade execution, and account balances for BTC/USD, ETH/USDT, and more. Rate-limited with exponential backoff.</p>
+        <div class="tags"><span>HTTPServer</span><span>Threading</span><span>REST API</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(46,204,113,0.1);color:var(--accent-green);">&#128214;</div>
+        <h3>SQLite Ledger Engine</h3>
+        <p>Double-entry bookkeeping with 9 seeded accounts (cash, crypto, revenue, fees). Tracks every trade, verifies debits = credits, and calculates P&amp;L per symbol — all in SQLite with zero setup.</p>
+        <div class="tags"><span>Double-Entry</span><span>SQLite</span><span>P&amp;L</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(254,202,87,0.1);color:var(--accent-gold);">&#9881;</div>
+        <h3>AST Static Code Auditor</h3>
+        <p>Parses your solution with Python's <code>ast</code> module. Detects: missing try-except on network calls, O(n<sup>2</sup>) nested loops, eval/exec, division by zero, missing type annotations, infinite while loops, and global state pollution.</p>
+        <div class="tags"><span>AST</span><span>Static Analysis</span><span>Security</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(162,155,254,0.1);color:var(--accent-purple);">&#128202;</div>
+        <h3>Evaluation Engine</h3>
+        <p>EOD pipeline: reads user code, runs AST audit, executes hidden test suite (subprocess), verifies SQLite ledger integrity, calculates score (0&ndash;100). Critical violations = automatic 0. Must score 100 to advance.</p>
+        <div class="tags"><span>Subprocess</span><span>Scoring</span><span>Validation</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,107,107,0.1);color:var(--accent-red);">&#128187;</div>
+        <h3>Web UI Dashboard</h3>
+        <p>Threaded HTTP server on <code>:8081</code> serving a full dark-themed dashboard. Live ticker feed, code editor with save/run, evaluation results history, ledger explorer, AST audit viewer — all with auto-polling.</p>
+        <div class="tags"><span>HTML/CSS/JS</span><span>REST API</span><span>Dark Theme</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(72,219,251,0.1);color:var(--accent-cyan);">&#128221;</div>
+        <h3>Workspace Generator</h3>
+        <p>Generates per-day workspace folders with <code>DAILY_BRIEF.md</code>, boilerplate <code>.py</code> files, and hidden test suites. Days 1&ndash;3 have hand-crafted curriculums; days 4&ndash;90 use procedural generation.</p>
+        <div class="tags"><span>File Generation</span><span>Curriculum</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Section: Screenshots ─── -->
+<section class="section" id="screenshots">
+  <div class="container">
+    <div class="section-label">&#128247; Screenshots</div>
+    <h2 class="section-title">See it in action.</h2>
+    <p class="section-desc">
+      Live captures from the running application — mock exchange data, Web UI panels,
+      CLI output, and ledger views.
+    </p>
+
+    <div class="showcase-grid">
+
+      <!-- Screenshot 1: Web Dashboard -->
+      <div class="showcase-card">
+        <div class="showcase-preview">
+          <div class="mock-dashboard">
+            <div class="stat">
+              <div class="label">Current Day</div>
+              <div class="value cyan">1 / 90</div>
+            </div>
+            <div class="stat">
+              <div class="label">Phase</div>
+              <div class="value gold">Data Ingestion</div>
+            </div>
+            <div class="stat">
+              <div class="label">Days Passed</div>
+              <div class="value green">0</div>
+            </div>
+            <div class="stat">
+              <div class="label">Exchange</div>
+              <div class="value green">&#9679; ONLINE</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:12px;border-top:1px solid var(--border);padding-top:12px">
+            <span style="color:var(--accent-gold)">BTC/USD <span style="color:var(--text-primary)">$67,306.92</span></span>
+            <span style="color:var(--accent-gold)">ETH/USD <span style="color:var(--text-primary)">$3,126.42</span></span>
+            <span style="color:var(--accent-gold)">BTC/USDT <span style="color:var(--text-primary)">$68,188.97</span></span>
+            <span style="color:var(--accent-gold)">EUR/USD <span style="color:var(--text-primary)">$1.09</span></span>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <span style="padding:4px 12px;border-radius:4px;font-size:10px;font-weight:600;background:var(--gradient-cyan);color:var(--bg-primary)">Start Day</span>
+            <span style="padding:4px 12px;border-radius:4px;font-size:10px;font-weight:600;background:linear-gradient(135deg,#ee5a24,#ff6b6b);color:#fff">EOD</span>
+            <span style="padding:4px 12px;border-radius:4px;font-size:10px;font-weight:600;background:linear-gradient(135deg,#00b894,#2ecc71);color:#fff">Run</span>
+            <span style="padding:4px 12px;border-radius:4px;font-size:10px;font-weight:600;background:linear-gradient(135deg,#e17055,#fdcb6e);color:var(--bg-primary)">Advance</span>
+          </div>
+        </div>
+        <div class="showcase-caption">
+          <h4>Web UI Dashboard</h4>
+          <p>Live market feed, stat cards (current day/phase/score), action buttons, and auto-polling ticker every 3 seconds. Dark theme inspired by trading terminals.</p>
+        </div>
+      </div>
+
+      <!-- Screenshot 2: Exchange API -->
+      <div class="showcase-card">
+        <div class="showcase-preview">
+          <div class="api-response">
+{<br>
+  <span class="key">"symbol"</span>: <span class="string">"BTC/USD"</span>,<br>
+  <span class="key">"price"</span>: <span class="number">67306.92</span>,<br>
+  <span class="key">"change_24h_pct"</span>: <span class="number">-4.07</span>,<br>
+  <span class="key">"volume_24h"</span>: <span class="number">5739.1</span>,<br>
+  <span class="key">"timestamp"</span>: <span class="string">"2026-06-18T22:53:26.463304"</span><br>
+}
+          </div>
+          <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;border-top:1px solid var(--border);padding-top:12px">
+            <span style="color:var(--accent-cyan)">GET /v1/ticker?symbol=BTC/USD</span>
+            <span style="color:var(--text-muted)">|</span>
+            <span style="color:var(--accent-cyan)">GET /v1/orderbook?symbol=ETH/USDT</span>
+            <span style="color:var(--text-muted)">|</span>
+            <span style="color:var(--accent-cyan)">POST /v1/execute</span>
+            <span style="color:var(--text-muted)">|</span>
+            <span style="color:var(--accent-cyan)">GET /v1/health</span>
+          </div>
+        </div>
+        <div class="showcase-caption">
+          <h4>Mock Exchange REST API</h4>
+          <p>Threaded HTTP server on <code>:8080</code> with order books, tickers, trade execution, and health checks. Every endpoint returns live JSON with realistic market data.</p>
+        </div>
+      </div>
+
+      <!-- Screenshot 3: Order Book -->
+      <div class="showcase-card">
+        <div class="showcase-preview">
+          <div class="mock-orderbook">
+            <div class="side bids">
+              <h5>&#9650; Bids</h5>
+              <div class="level"><span class="price">3,142.89</span><span class="qty">40.45</span></div>
+              <div class="level"><span class="price">3,136.60</span><span class="qty">33.69</span></div>
+              <div class="level"><span class="price">3,130.32</span><span class="qty">22.72</span></div>
+              <div class="level"><span class="price">3,124.03</span><span class="qty">36.99</span></div>
+              <div class="level"><span class="price">3,117.75</span><span class="qty">13.08</span></div>
+            </div>
+            <div class="side asks">
+              <h5>&#9660; Asks</h5>
+              <div class="level"><span class="price">3,151.16</span><span class="qty">40.45</span></div>
+              <div class="level"><span class="price">3,157.46</span><span class="qty">33.69</span></div>
+              <div class="level"><span class="price">3,163.76</span><span class="qty">22.72</span></div>
+              <div class="level"><span class="price">3,170.06</span><span class="qty">36.99</span></div>
+              <div class="level"><span class="price">3,176.37</span><span class="qty">13.08</span></div>
+            </div>
+            <div class="spread-row">Spread: 8.27 &mdash; Mid: 3,146.82</div>
+          </div>
+        </div>
+        <div class="showcase-caption">
+          <h4>ETH/USDT Order Book — 5 Levels</h4>
+          <p>Live order book from the mock exchange showing bids (buyers) and asks (sellers) with price levels and quantities. Spread and mid-price calculated automatically.</p>
+        </div>
+      </div>
+
+      <!-- Screenshot 4: Ledger -->
+      <div class="showcase-card">
+        <div class="showcase-preview">
+          <table class="mock-ledger-table">
+            <thead>
+              <tr><th>Code</th><th>Name</th><th>Type</th><th>Balance</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1000</td><td>Cash - USD</td><td>asset</td><td class="amt green">100,000.00</td></tr>
+              <tr><td>1100</td><td>BTC Wallet</td><td>asset</td><td class="amt">0.50</td></tr>
+              <tr><td>1200</td><td>ETH Wallet</td><td>asset</td><td class="amt">0.00</td></tr>
+              <tr><td>1300</td><td>USDT Wallet</td><td>asset</td><td class="amt">50,000.00</td></tr>
+              <tr><td>4000</td><td>Revenue - Trading</td><td>revenue</td><td class="amt green">1,245.30</td></tr>
+              <tr><td>5000</td><td>Fees Paid</td><td>expense</td><td class="amt red">33.72</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:8px;font-size:10px;border-top:1px solid var(--border);padding-top:8px;color:var(--accent-green)">&#10003; Double-entry balanced &mdash; Trades logged: 1</div>
+        </div>
+        <div class="showcase-caption">
+          <h4>SQLite Ledger — Double-Entry Bookkeeping</h4>
+          <p>9 seeded accounts across assets, revenue, and expense types. Every trade creates balanced debit/credit entries. P&amp;L calculated per symbol with SOCPA-compliant audit trails.</p>
+        </div>
+      </div>
+
+      <!-- Screenshot 5: AST Audit -->
+      <div class="showcase-card">
+        <div class="showcase-preview" style="min-height:200px">
+          <div class="code-mock">
+            <span class="cm"><span class="line-num"> 1</span> # AST Auditor — detected issues</span><br>
+            <span style="color:var(--accent-red)">&#9679; CRITICAL</span> <span class="line-num">L5</span>  <span style="color:#fab1a0">Missing try-except on urllib.request.urlopen()</span><br>
+            <span style="color:var(--accent-gold)">&#9679; WARNING</span> <span class="line-num">L11</span> <span style="color:#ffeaa7">O(n&sup2;) nested loop: for i in range(len(prices))</span><br>
+            <span style="color:var(--accent-cyan)">&#9679; INFO</span>    <span class="line-num">L4</span>  <span style="color:#81ecec">Missing type annotation for parameter 'url'</span><br>
+            <span style="color:var(--accent-cyan)">&#9679; INFO</span>    <span class="line-num">L8</span>  <span style="color:#81ecec">Missing return type annotation</span><br>
+            <span style="color:var(--accent-red)">&#9679; CRITICAL</span> <span class="line-num">L3</span>  <span style="color:#fab1a0">Use of eval() detected — security risk</span><br>
+            <span class="cm"><span class="line-num">---</span> Complexity Score: 14 — 4 critical, 1 warning, 2 info</span>
+          </div>
+        </div>
+        <div class="showcase-caption">
+          <h4>AST Static Code Audit</h4>
+          <p>Real-time code analysis using Python's <code>ast</code> module. 9 check categories: network exception handling, nested loops, eval/exec, type annotations, division by zero, infinite loops, and global state.</p>
+        </div>
+      </div>
+
+      <!-- Screenshot 6: Code Editor -->
+      <div class="showcase-card">
+        <div class="showcase-preview" style="min-height:220px;padding:14px">
+          <div class="code-mock">
+            <span class="cm"><span class="line-num"> 1</span> # Day 1: Data Ingestion &amp; SMA Calculation</span><br>
+            <span class="kw"><span class="line-num"> 2</span> import</span> json<br>
+            <span class="kw"><span class="line-num"> 3</span> import</span> sqlite3<br>
+            <span class="kw"><span class="line-num"> 4</span> import</span> urllib.request<br>
+            <span class="kw"><span class="line-num"> 5</span> from</span> typing <span class="kw">import</span> <span class="fn">List</span>, <span class="fn">Optional</span>, <span class="fn">Tuple</span><br>
+            <br>
+            <span class="kw"><span class="line-num"> 7</span> def</span> <span class="fn">fetch_orderbook</span>(url: <span class="fn">str</span> = EXCHANGE_URL) <span class="kw">-&gt;</span> <span class="fn">Optional</span>[<span class="fn">dict</span>]:<br>
+            <span class="line-num"> 8</span>     <span class="str">"""Fetch order book from mock exchange."""</span><br>
+            <span class="line-num"> 9</span>     <span class="cm"># TODO: Implement with proper error handling</span><br>
+            <span class="line-num">10</span>     <span class="kw">pass</span><br>
+            <br>
+            <span class="kw"><span class="line-num">12</span> def</span> <span class="fn">calculate_sma</span>(prices: <span class="fn">List</span>[<span class="fn">float</span>], window: <span class="fn">int</span>) <span class="kw">-&gt;</span> <span class="fn">List</span>[<span class="fn">Optional</span>[<span class="fn">float</span>]]:<br>
+            <span class="line-num">13</span>     <span class="str">"""Calculate Simple Moving Average."""</span><br>
+            <span class="line-num">14</span>     <span class="cm"># TODO: Implement</span><br>
+            <span class="line-num">15</span>     <span class="kw">pass</span>
+          </div>
+        </div>
+        <div class="showcase-caption">
+          <h4>Code Editor — Day 1 Boilerplate</h4>
+          <p>Built-in code editor with save/run. Day 1 task: fetch BTC/USD order book from mock exchange, calculate SMA(5) and SMA(20), log to SQLite. All boilerplate includes type annotations and error handling stubs.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── Section: Architecture ─── -->
+<section class="section" id="architecture">
+  <div class="container">
+    <div class="section-label">&#9881; Architecture</div>
+    <h2 class="section-title">Single-file, multi-threaded.</h2>
+    <p class="section-desc">
+      All modules live in one 3,961-line Python file. Threaded HTTP servers run the
+      exchange and web UI in the background while the CLI processes commands.
+    </p>
+
+    <div class="arch-grid">
+      <div class="arch-module">
+        <div class="icon">&#9000;</div>
+        <h4>CLI</h4>
+        <p><code>cmd.Cmd</code> interface with 10 commands</p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#127760;</div>
+        <h4>Web UI</h4>
+        <p>Threaded HTTP on <code>:8081</code></p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#8644;</div>
+        <h4>Mock Exchange</h4>
+        <p>Threaded HTTP on <code>:8080</code></p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#128451;</div>
+        <h4>AST Auditor</h4>
+        <p>Static code analysis via <code>ast</code></p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#128214;</div>
+        <h4>Ledger Engine</h4>
+        <p>Double-entry SQLite bookkeeping</p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#128202;</div>
+        <h4>Evaluator</h4>
+        <p>Subprocess tests + scoring</p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#128193;</div>
+        <h4>Workspace Gen</h4>
+        <p>Per-day file generation</p>
+      </div>
+      <div class="arch-module">
+        <div class="icon">&#128196;</div>
+        <h4>State Manager</h4>
+        <p>JSON persistence &amp; day tracking</p>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">DATA FLOW</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;font-size:13px">
+        <span style="color:var(--accent-cyan)">CLI / Web UI</span>
+        <span style="color:var(--text-muted)">&rarr;</span>
+        <span style="color:var(--accent-green)">Workspace Gen</span>
+        <span style="color:var(--text-muted)">&rarr;</span>
+        <span style="color:var(--accent-gold)">User writes code</span>
+        <span style="color:var(--text-muted)">&rarr;</span>
+        <span style="color:var(--accent-red)">EOD: AST Audit</span>
+        <span style="color:var(--text-muted)">&rarr;</span>
+        <span style="color:var(--accent-purple)">Test Suite</span>
+        <span style="color:var(--text-muted)">&rarr;</span>
+        <span style="color:var(--accent-cyan)">Ledger Verify</span>
+        <span style="color:var(--text-muted)">&rarr;</span>
+        <span style="color:var(--accent-green)">Score</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Section: Tech Stack ─── -->
+<section class="section" style="border-bottom:none">
+  <div class="container">
+    <div class="section-label">&#9889; Tech Stack</div>
+    <h2 class="section-title">Standard library only.</h2>
+    <p class="section-desc">
+      No package manager. No <code>requirements.txt</code>. No <code>node_modules</code>.
+      Built with what ships with Python.
+    </p>
+
+    <div class="features-grid" style="margin-top:32px">
+      <div class="feature-card" style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:8px">&#128268;</div>
+        <h3>http.server / socketserver</h3>
+        <p style="font-size:11px">Threaded HTTP servers for exchange &amp; web UI</p>
+      </div>
+      <div class="feature-card" style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:8px">&#128451;</div>
+        <h3>ast</h3>
+        <p style="font-size:11px">Abstract Syntax Tree parsing for code audits</p>
+      </div>
+      <div class="feature-card" style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:8px">&#128451;</div>
+        <h3>sqlite3</h3>
+        <p style="font-size:11px">Embedded database for double-entry ledger</p>
+      </div>
+      <div class="feature-card" style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:8px">&#128268;</div>
+        <h3>threading</h3>
+        <p style="font-size:11px">Background daemon threads for both servers</p>
+      </div>
+      <div class="feature-card" style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:8px">&#128220;</div>
+        <h3>urllib / json</h3>
+        <p style="font-size:11px">HTTP client for exchange API calls + JSON parsing</p>
+      </div>
+      <div class="feature-card" style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:8px">&#128220;</div>
+        <h3>subprocess</h3>
+        <p style="font-size:11px">Isolated test execution in child processes</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Section: Pricing ─── -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-label">&#9733; Licensing</div>
+    <h2 class="section-title">One file. Four tiers.</h2>
+    <p class="section-desc">
+      Choose the license that fits your use case. All tiers include the same
+      software — the difference is what you're allowed to do with it.
+    </p>
+
+    <div class="pricing-grid">
+
+      <!-- Individual -->
+      <div class="pricing-card">
+        <div class="tier">Individual</div>
+        <div class="price"><span class="currency">$</span>79</div>
+        <div class="audience">Solo devs, students, self-learners</div>
+        <ul>
+          <li><span class="check">&#10003;</span> 1 user, up to 2 machines</li>
+          <li><span class="check">&#10003;</span> Personal, non-commercial use</li>
+          <li><span class="check">&#10003;</span> Modify for personal learning</li>
+          <li><span class="check">&#10003;</span> 30-day email support</li>
+          <li><span class="check">&#10003;</span> 30-day money-back guarantee</li>
+        </ul>
+        <a href="#" class="pricing-btn secondary">Buy Now — $79</a>
+      </div>
+
+      <!-- Professional (Featured) -->
+      <div class="pricing-card featured">
+        <div class="tier">Professional</div>
+        <div class="price"><span class="currency">$</span>249</div>
+        <div class="audience">Freelancers, commercial projects</div>
+        <ul>
+          <li><span class="check">&#10003;</span> 1 user, up to 3 machines</li>
+          <li><span class="check">&#10003;</span> <strong>Commercial use</strong> permitted</li>
+          <li><span class="check">&#10003;</span> Use in client deliverables</li>
+          <li><span class="check">&#10003;</span> 60-day priority email support</li>
+          <li><span class="check">&#10003;</span> 30-day money-back guarantee</li>
+        </ul>
+        <a href="#" class="pricing-btn primary">Buy Now — $249</a>
+      </div>
+
+      <!-- Academy -->
+      <div class="pricing-card">
+        <div class="tier">Academy</div>
+        <div class="price"><span class="currency">$</span>750</div>
+        <div class="audience">Bootcamps, classrooms, training programs</div>
+        <ul>
+          <li><span class="check">&#10003;</span> Up to 30 enrolled students</li>
+          <li><span class="check">&#10003;</span> Unlimited machines on campus</li>
+          <li><span class="check">&#10003;</span> Curriculum customization allowed</li>
+          <li><span class="check">&#10003;</span> <strong>White-label</strong> branding option</li>
+          <li><span class="check">&#10003;</span> 90-day priority support SLA</li>
+        </ul>
+        <a href="#" class="pricing-btn secondary">Buy Now — $750</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card">
+        <div class="tier">Enterprise</div>
+        <div class="price"><span class="currency">$</span>2,500</div>
+        <div class="audience">Organizations, unlimited deployment</div>
+        <ul>
+          <li><span class="check">&#10003;</span> Unlimited employees &amp; contractors</li>
+          <li><span class="check">&#10003;</span> Full modification &amp; re-brand rights</li>
+          <li><span class="check">&#10003;</span> Source code access negotiable</li>
+          <li><span class="check">&#10003;</span> Dedicated engineering SLA</li>
+          <li><span class="check">&#10003;</span> Custom module development available</li>
+        </ul>
+        <a href="#" class="pricing-btn enterprise">Contact Us</a>
+      </div>
+
+    </div>
+
+    <!-- FAQ -->
+    <div class="pricing-faq">
+      <details>
+        <summary>What's the difference between tiers? Same file?</summary>
+        <p>Yes — the <code>arbitrage_academy.py</code> file is identical. The license governs what you're legally permitted to do with it. Individual = personal learning only. Professional = you can use it in client work. Academy = classroom use with white-label. Enterprise = full organizational deployment with custom development options.</p>
+      </details>
+      <details>
+        <summary>Do I have to pay again for updates?</summary>
+        <p>No. Your license covers the version you purchased and any minor updates (bug fixes, patches) within the same major version. Major version upgrades (e.g., v2.0) may be offered at a discount for existing customers.</p>
+      </details>
+      <details>
+        <summary>What's the refund policy?</summary>
+        <p>30-day money-back guarantee for Individual and Professional tiers. If the software doesn't work as described, you get a full refund. Academy and Enterprise licenses are subject to the terms negotiated at purchase.</p>
+      </details>
+      <details>
+        <summary>Can I buy now and upgrade later?</summary>
+        <p>Yes. The difference between tiers is credited toward an upgrade within 90 days of purchase. For example, buy Individual ($79), upgrade to Professional ($249) — pay only the $170 difference.</p>
+      </details>
+      <details>
+        <summary>What payment methods do you accept?</summary>
+        <p>All major credit cards, PayPal, and crypto (USDT/USDC) via our payment processor. Enterprise invoices with Net-30 terms are available upon request.</p>
+      </details>
+    </div>
+
+    <!-- Guarantee -->
+    <div class="pricing-guarantee">
+      <strong>&#10003; 30-Day Money-Back Guarantee.</strong>
+      &nbsp;Download the script, run it, and if it doesn't do what we say, get a full refund. No questions asked.
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta-section" id="cta">
+  <div class="container">
+    <h2>See it in action before you buy.</h2>
+    <p>The Principal Strategist is live on <code>localhost:8081</code> — start Day 1, write your solution, and face the EOD evaluation. No license key required to try.</p>
+    <div class="hero-cta" style="justify-content:center">
+      <a href="http://localhost:8081" class="btn btn-primary" target="_blank">&#9654; Launch Dashboard</a>
+      <a href="#pricing" class="btn btn-secondary">View Pricing &darr;</a>
+    </div>
+    <div id="terminalCmd" style="display:none;margin-top:20px;background:#000;border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent-green);text-align:left;max-width:500px;margin-left:auto;margin-right:auto">
+      <span style="color:var(--text-muted)"># From the project directory:</span><br>
+      python arbitrage_academy.py
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer class="footer">
+  <div class="container">
+    <p>NovaCap Principal Strategist &mdash; 90-Day Arbitrage Protocol v1.0.0</p>
+    <p style="margin-top:8px">
+      <a href="#pricing">Pricing</a> &middot;
+      <a href="EULA.md">License Agreement</a> &middot;
+      <a href="PRODUCT.md">Documentation</a> &middot;
+      <a href="http://localhost:8081">Dashboard</a> &middot;
+      <a href="http://localhost:8080/v1/health">Exchange Health</a>
+    </p>
+    <p style="margin-top:8px;font-size:10px">CMA &copy; Institute of Management Accountants &middot; SOCPA &copy; Saudi Organization for Chartered and Professional Accountants</p>
+    <p style="margin-top:4px;font-size:10px;color:var(--text-muted)">Use of this software is governed by the <a href="EULA.md" style="color:var(--accent-cyan)">End-User License Agreement</a>. Unauthorized distribution or commercial use without a valid license is prohibited.</p>
+  </div>
+</footer>
+
+</body>
+</html>

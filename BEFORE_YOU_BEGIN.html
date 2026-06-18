@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Before You Begin — Complete Preparation Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #060a12;
+    --bg-secondary: #0a0e17;
+    --bg-card: #0f1525;
+    --bg-code: #060a12;
+    --border: #152030;
+    --border-light: #1a3050;
+    --text-primary: #dfe6e9;
+    --text-secondary: #8395a7;
+    --text-muted: #4a5a6a;
+    --accent-cyan: #48dbfb;
+    --accent-blue: #0abde3;
+    --accent-green: #2ecc71;
+    --accent-red: #ff6b6b;
+    --accent-gold: #feca57;
+    --accent-purple: #a29bfe;
+    --gradient-cyan: linear-gradient(135deg, #0abde3, #48dbfb);
+    --gradient-green: linear-gradient(135deg, #00b894, #2ecc71);
+    --gradient-gold: linear-gradient(135deg, #e17055, #fdcb6e);
+    --gradient-red: linear-gradient(135deg, #ee5a24, #ff6b6b);
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  .bg-grid {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(72, 219, 251, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(72, 219, 251, 0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ─── Nav ─── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 10px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(6, 10, 18, 0.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+    gap: 12px;
+  }
+
+  .top-nav .logo {
+    font-size: 13px; font-weight: 700; white-space: nowrap;
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .top-nav nav {
+    display: flex; gap: 14px; align-items: center;
+    overflow-x: auto; flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .top-nav nav a {
+    font-size: 11px; color: var(--text-muted); text-decoration: none;
+    transition: color 0.2s; white-space: nowrap;
+  }
+  .top-nav nav a:hover { color: var(--accent-cyan); }
+
+  @media (max-width: 700px) { .top-nav nav { display: none; } }
+
+  /* ─── Hero ─── */
+  .hero {
+    padding: 100px 24px 60px;
+    text-align: center;
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 5px 14px; border-radius: 20px;
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(72, 219, 251, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(72, 219, 251, 0.2);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 .gradient {
+    background: var(--gradient-cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    font-weight: 300;
+  }
+
+  .hero .checklist-summary {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-top: 24px;
+  }
+
+  .hero .checklist-summary span {
+    padding: 4px 12px; border-radius: 6px;
+    font-size: 11px; font-weight: 500;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  /* ─── Section ─── */
+  .section {
+    padding: 60px 0;
+    border-bottom: 1px solid rgba(21, 32, 48, 0.5);
+  }
+  .section:last-of-type { border-bottom: none; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent-cyan);
+    margin-bottom: 4px;
+  }
+
+  .section-title {
+    font-size: clamp(24px, 3.5vw, 34px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .section-title .light {
+    font-weight: 300;
+    color: var(--text-secondary);
+  }
+
+  .section-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  /* ─── Content Card ─── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+
+  .card:last-child { margin-bottom: 0; }
+
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card h3 .icon { font-size: 20px; }
+
+  .card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  .card p:last-child { margin-bottom: 0; }
+
+  .card p strong { color: var(--text-primary); }
+
+  .card .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 10px 0;
+    overflow-x: auto;
+    color: var(--accent-green);
+  }
+
+  .card .code-block .kw { color: var(--accent-cyan); }
+  .card .code-block .str { color: var(--accent-green); }
+  .card .code-block .cm { color: var(--text-muted); font-style: italic; }
+  .card .code-block .fn { color: var(--accent-purple); }
+  .card .code-block .num { color: var(--accent-gold); }
+  .card .code-block .err { color: var(--accent-red); }
+
+  /* ─── Link Grid ─── */
+  .link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .link-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(6, 10, 18, 0.5);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .link-card:hover {
+    border-color: rgba(72, 219, 251, 0.25);
+    background: rgba(10, 14, 23, 0.6);
+  }
+
+  .link-card .link-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .link-card .link-icon.cyan { background: rgba(72, 219, 251, 0.1); }
+  .link-card .link-icon.green { background: rgba(46, 204, 113, 0.1); }
+  .link-card .link-icon.gold { background: rgba(254, 202, 87, 0.1); }
+  .link-card .link-icon.red { background: rgba(255, 107, 107, 0.1); }
+  .link-card .link-icon.purple { background: rgba(162, 155, 254, 0.1); }
+
+  .link-card .link-text { flex: 1; min-width: 0; }
+  .link-card .link-text .link-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+  }
+  .link-card .link-text .link-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 1px;
+  }
+  .link-card .link-arrow {
+    color: var(--text-muted);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Badge Tags ─── */
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .tag {
+    font-size: 9px; padding: 2px 8px; border-radius: 4px;
+    font-weight: 600; letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .tag.red { background: rgba(255, 107, 107, 0.1); color: var(--accent-red); border: 1px solid rgba(255, 107, 107, 0.15); }
+  .tag.green { background: rgba(46, 204, 113, 0.1); color: var(--accent-green); border: 1px solid rgba(46, 204, 113, 0.15); }
+  .tag.cyan { background: rgba(72, 219, 251, 0.1); color: var(--accent-cyan); border: 1px solid rgba(72, 219, 251, 0.15); }
+  .tag.gold { background: rgba(254, 202, 87, 0.1); color: var(--accent-gold); border: 1px solid rgba(254, 202, 87, 0.15); }
+  .tag.purple { background: rgba(162, 155, 254, 0.1); color: var(--accent-purple); border: 1px solid rgba(162, 155, 254, 0.15); }
+  .tag.gray { background: rgba(131, 149, 167, 0.1); color: var(--text-secondary); border: 1px solid rgba(131, 149, 167, 0.15); }
+
+  /* ─── Info Box ─── */
+  .info-box {
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 14px 0;
+  }
+
+  .info-box.tip {
+    background: rgba(72, 219, 251, 0.05);
+    border: 1px solid rgba(72, 219, 251, 0.12);
+    color: var(--text-secondary);
+  }
+
+  .info-box.tip strong { color: var(--accent-cyan); }
+
+  .info-box.warn {
+    background: rgba(254, 202, 87, 0.05);
+    border: 1px solid rgba(254, 202, 87, 0.12);
+    color: var(--text-secondary);
+  }
+
+  .info-box.warn strong { color: var(--accent-gold); }
+
+  .info-box.danger {
+    background: rgba(255, 107, 107, 0.05);
+    border: 1px solid rgba(255, 107, 107, 0.12);
+    color: var(--text-secondary);
+  }
+
+  .info-box.danger strong { color: var(--accent-red); }
+
+  /* ─── Table ─── */
+  .skill-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 12px 0;
+  }
+
+  .skill-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-code);
+  }
+
+  .skill-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(14, 24, 37, 0.5);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  .skill-table tr:hover td { background: rgba(10, 14, 23, 0.3); }
+  .skill-table .req { text-align: center; font-weight: 600; }
+
+  /* ─── TOC ─── */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+
+  .toc-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 4px;
+  }
+
+  .toc-grid a {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .toc-grid a:hover {
+    color: var(--accent-cyan);
+    background: rgba(72, 219, 251, 0.05);
+  }
+
+  /* ─── Check-list item ─── */
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+  }
+
+  .check-item .box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border-light);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .check-item .box.filled {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+
+  .check-item .text { font-size: 13px; color: var(--text-secondary); }
+  .check-item .text strong { color: var(--text-primary); }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  .footer a { color: var(--accent-cyan); text-decoration: none; }
+
+  /* ─── Print ─── */
+  @media print {
+    .top-nav { display: none; }
+    .bg-grid { display: none; }
+    body { background: #fff; color: #000; }
+    .card { border-color: #ccc; background: #f9f9f9; }
+    .link-card { border-color: #ddd; background: #f5f5f5; }
+    .hero h1 .gradient { color: #0066cc; -webkit-text-fill-color: #0066cc; }
+    .toc, .info-box { border-color: #ccc; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- ─── Nav ─── -->
+<div class="top-nav">
+  <div class="logo">&#9733; Before You Begin</div>
+  <nav>
+    <a href="#python">Python</a>
+    <a href="#annotations">Type Hints</a>
+    <a href="#exceptions">Exceptions</a>
+    <a href="#sql">SQL</a>
+    <a href="#http">HTTP &amp; JSON</a>
+    <a href="#cli">Command Line</a>
+    <a href="#stdlib">Stdlib</a>
+    <a href="#finance">Finance</a>
+    <a href="#standards">Standards</a>
+    <a href="#setup">Setup</a>
+  </nav>
+</div>
+
+<!-- ─── Hero ─── -->
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-badge">&#9733; Complete Preparation Guide</div>
+    <h1>
+      Everything You Need to Know<br>
+      <span class="gradient">Before You Begin</span>
+    </h1>
+    <p>
+      A comprehensive, topic-by-topic guide to the skills, concepts, and resources
+      you need before starting the Principal Strategist 90-Day Arbitrage Training Program.
+      Every section includes free online learning links.
+    </p>
+    <div class="checklist-summary">
+      <span>Python 3.8+</span>
+      <span>Type Annotations</span>
+      <span>Exception Handling</span>
+      <span>SQLite</span>
+      <span>HTTP / JSON</span>
+      <span>Command Line</span>
+      <span>Standard Library</span>
+      <span>Financial Concepts</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Table of Contents ─── -->
+<section class="section">
+  <div class="container">
+    <div class="toc">
+      <div class="toc-title">&#128196; Table of Contents</div>
+      <div class="toc-grid">
+        <a href="#python">1. Python Fundamentals</a>
+        <a href="#annotations">2. Type Annotations</a>
+        <a href="#exceptions">3. Exception Handling</a>
+        <a href="#sql">4. SQL &amp; SQLite</a>
+        <a href="#http">5. HTTP &amp; JSON</a>
+        <a href="#cli">6. Command Line Basics</a>
+        <a href="#stdlib">7. Standard Library Tour</a>
+        <a href="#finance">8. Financial Concepts</a>
+        <a href="#standards">9. CMA / SOCPA / IFRS</a>
+        <a href="#setup">10. Environment Setup</a>
+        <a href="#checklist">&#9989; Final Checklist</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: PYTHON FUNDAMENTALS                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="python">
+  <div class="container">
+    <div class="section-label">1 &sol; 10</div>
+    <h2 class="section-title">Python Fundamentals</h2>
+    <p class="section-desc">You must be comfortable reading and writing Python at an intermediate level. The simulator will test every function you write through AST audit and hidden tests.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#128220;</span> What You Need to Know</h3>
+
+      <table class="skill-table">
+        <thead><tr><th>Topic</th><th>Required Level</th><th>Tested In</th></tr></thead>
+        <tbody>
+          <tr><td>Variables &amp; data types</td><td class="req">&#9733;&#9733;&#9734;</td><td>Day 1+</td></tr>
+          <tr><td>Functions (<code>def</code>, <code>return</code>)</td><td class="req">&#9733;&#9733;&#9733;</td><td>Day 1+</td></tr>
+          <tr><td>Lists, dicts, tuples, sets</td><td class="req">&#9733;&#9733;&#9733;</td><td>Day 1+</td></tr>
+          <tr><td>Loops (<code>for</code>, <code>while</code>)</td><td class="req">&#9733;&#9733;&#9733;</td><td>Day 1+</td></tr>
+          <tr><td>Conditionals (<code>if</code>/<code>elif</code>/<code>else</code>)</td><td class="req">&#9733;&#9733;&#9733;</td><td>Day 1+</td></tr>
+          <tr><td>List comprehensions</td><td class="req">&#9733;&#9733;&#9734;</td><td>Day 6+</td></tr>
+          <tr><td>Slicing &amp; string formatting</td><td class="req">&#9733;&#9733;&#9734;</td><td>Day 1+</td></tr>
+          <tr><td>File I/O</td><td class="req">&#9733;&#9733;&#9734;</td><td>Day 4+</td></tr>
+          <tr><td>Modules &amp; imports</td><td class="req">&#9733;&#9733;&#9733;</td><td>Day 1+</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Free Learning Resources</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://docs.python.org/3/tutorial/" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Official Python Tutorial</span>
+            <span class="link-desc">python.org &mdash; The definitive starting point</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.learnpython.org/" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128187;</span>
+          <span class="link-text">
+            <span class="link-title">LearnPython.org</span>
+            <span class="link-desc">Interactive browser-based Python tutorials</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://realpython.com/" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Real Python</span>
+            <span class="link-desc">In-depth tutorials for all skill levels</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.w3schools.com/python/" target="_blank" rel="noopener">
+          <span class="link-icon purple">&#127760;</span>
+          <span class="link-text">
+            <span class="link-title">W3Schools Python</span>
+            <span class="link-desc">Quick reference with interactive examples</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.codecademy.com/learn/learn-python-3" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#127891;</span>
+          <span class="link-text">
+            <span class="link-title">Codecademy Python 3</span>
+            <span class="link-desc">Structured course with exercises</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://automatetheboringstuff.com/" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128213;</span>
+          <span class="link-text">
+            <span class="link-title">Automate the Boring Stuff</span>
+            <span class="link-desc">Free book with practical Python projects</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128200;</span> Concept Deep-Dive: Lists &amp; Slicing</h3>
+      <p>You will frequently work with sliding windows of price data. List slicing is essential.</p>
+      <div class="code-block">
+<span class="cm"># Sliding window of last 5 prices</span>
+prices = [100.0, 101.5, 102.3, 101.8, 103.2, 104.0, 103.5]
+
+<span class="cm"># Last 5 elements</span>
+window = prices[-5:]   <span class="cm"># [101.8, 103.2, 104.0, 103.5]</span>
+
+<span class="cm"># SMA(5) calculation</span>
+sma_5 = sum(prices[-5:]) / 5
+
+<span class="cm"># List comprehension for SMA values</span>
+def sma(data, window):
+    <span class="kw">return</span> [sum(data[i-window:i])/window <span class="kw">if</span> i &gt;= window <span class="kw">else</span> <span class="kw">None</span>
+            <span class="kw">for</span> i <span class="kw">in</span> range(len(data)+1)][1:]
+      </div>
+      <div class="tag-row">
+        <span class="tag cyan">Day 1</span>
+        <span class="tag gold">AST: NESTED_LOOP</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#9888;</span> Common Mistakes That Will Fail You</h3>
+      <div class="info-box danger">
+        <strong>&#10060; Using eval() or exec():</strong> The AST auditor flags these as critical violations (&minus;40 pts). Never use them.
+      </div>
+      <div class="info-box danger">
+        <strong>&#10060; O(n&sup2;) nested loops:</strong> <code>for i in range(len(p)): for j in range(len(p)):</code> triggers a warning (&minus;10 pts). Use sliding windows instead.
+      </div>
+      <div class="info-box danger">
+        <strong>&#10060; Division by zero:</strong> Always guard <code>a / b</code> with <code>if b != 0:</code> or use <code>try/except ZeroDivisionError</code>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: TYPE ANNOTATIONS                            -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="annotations">
+  <div class="container">
+    <div class="section-label">2 &sol; 10</div>
+    <h2 class="section-title">Type Annotations &lpar;PEP 484&rpar;</h2>
+    <p class="section-desc">The AST auditor checks that every function parameter and return value has a type hint. Missing annotations are recorded as INFO-level findings. While they don't deduct points, the Principal Strategist expects professional-grade code.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#128221;</span> The Syntax</h3>
+      <div class="code-block">
+<span class="cm"># Function with type annotations</span>
+<span class="kw">def</span> <span class="fn">calculate_sma</span>(
+    prices: <span class="fn">List</span>[<span class="fn">float</span>],    <span class="cm"># parameter type</span>
+    window: <span class="fn">int</span>               <span class="cm"># parameter type</span>
+) -&gt; <span class="fn">List</span>[<span class="fn">Optional</span>[<span class="fn">float</span>]]:    <span class="cm"># return type</span>
+    <span class="str">"""Calculate Simple Moving Average."""</span>
+    <span class="kw">pass</span>
+      </div>
+      <p>Always import from <code>typing</code>:</p>
+      <div class="code-block">
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="fn">List</span>, <span class="fn">Dict</span>, <span class="fn">Optional</span>, <span class="fn">Tuple</span>, <span class="fn">Union</span>, <span class="fn">Any</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Learning Resources</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://docs.python.org/3/library/typing.html" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Official typing Module Docs</span>
+            <span class="link-desc">python.org &mdash; Complete reference</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#128203;</span>
+          <span class="link-text">
+            <span class="link-title">mypy Cheat Sheet</span>
+            <span class="link-desc">Quick reference for common type patterns</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://realpython.com/python-type-checking/" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Real Python: Type Checking Guide</span>
+            <span class="link-desc">Tutorial with examples</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.python.org/dev/peps/pep-0484/" target="_blank" rel="noopener">
+          <span class="link-icon purple">&#128196;</span>
+          <span class="link-text">
+            <span class="link-title">PEP 484 &mdash; Type Hints</span>
+            <span class="link-desc">The original specification</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128204;</span> Types You'll Use Most</h3>
+      <div class="code-block">
+<span class="kw">from</span> typing <span class="kw">import</span> List, Dict, Optional, Tuple, Union
+
+<span class="cm"># Basic types</span>
+name: <span class="fn">str</span> = <span class="str">"BTC/USD"</span>
+price: <span class="fn">float</span> = 67306.92
+count: <span class="fn">int</span> = 30
+active: <span class="fn">bool</span> = <span class="kw">True</span>
+
+<span class="cm"># Collections</span>
+prices: <span class="fn">List</span>[<span class="fn">float</span>] = [100.0, 101.5, 102.3]
+orderbook: <span class="fn">Dict</span>[<span class="fn">str</span>, <span class="fn">Any</span>] = {<span class="str">"bids"</span>: [], <span class="str">"asks"</span>: []}
+
+<span class="cm"># Optional (can be None)</span>
+sma_value: <span class="fn">Optional</span>[<span class="fn">float</span>] = <span class="kw">None</span>
+
+<span class="cm"># Tuple (fixed-size, possibly mixed types)</span>
+trade: <span class="fn">Tuple</span>[<span class="fn">str</span>, <span class="fn">float</span>, <span class="fn">float</span>] = (<span class="str">"BTC/USD"</span>, 1.0, 50000.0)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: EXCEPTION HANDLING                          -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="exceptions">
+  <div class="container">
+    <div class="section-label">3 &sol; 10</div>
+    <h2 class="section-title">Exception Handling</h2>
+    <p class="section-desc"><strong>This is the most critical skill.</strong> The AST auditor gives a &minus;40 CRITICAL violation for every network call without a try-except wrapper. Two such violations = automatic 0 for the day.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#9888;</span> The Rule</h3>
+      <p><strong>Every single <code>urllib.request</code> call must be wrapped in <code>try/except</code>.</strong> The exchange can go down, return rate limits, or send malformed data. Your pipeline must survive all of it.</p>
+      <div class="code-block">
+<span class="kw">import</span> urllib.request
+<span class="kw">import</span> urllib.error
+
+<span class="kw">def</span> <span class="fn">fetch_orderbook</span>(url: <span class="fn">str</span>) -&gt; <span class="fn">Optional</span>[<span class="fn">dict</span>]:
+    <span class="kw">try</span>:
+        <span class="kw">with</span> urllib.request.urlopen(url, timeout=5) <span class="kw">as</span> resp:
+            <span class="kw">return</span> json.loads(resp.read().decode())
+    <span class="kw">except</span> urllib.error.HTTPError <span class="kw">as</span> e:
+        <span class="kw">if</span> e.code == 429:
+            time.sleep(1)  <span class="cm"># rate-limited, back off</span>
+        <span class="kw">return</span> <span class="kw">None</span>
+    <span class="kw">except</span> urllib.error.URLError <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="str">f"Network error: {e.reason}"</span>)
+        <span class="kw">return</span> <span class="kw">None</span>
+    <span class="kw">except</span> json.JSONDecodeError <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="str">f"Bad JSON: {e}"</span>)
+        <span class="kw">return</span> <span class="kw">None</span>
+    <span class="kw">except</span> socket.timeout:
+        <span class="fn">print</span>(<span class="str">"Connection timed out"</span>)
+        <span class="kw">return</span> <span class="kw">None</span>
+      </div>
+      <div class="tag-row">
+        <span class="tag red">CRITICAL</span>
+        <span class="tag cyan">Day 1+</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Learning Resources</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://docs.python.org/3/tutorial/errors.html" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Official Python Errors &amp; Exceptions</span>
+            <span class="link-desc">python.org &mdash; Complete tutorial</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://realpython.com/python-exceptions/" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Real Python: Exception Handling</span>
+            <span class="link-desc">try/except/else/finally explained</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://docs.python.org/3/library/exceptions.html" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#128214;</span>
+          <span class="link-text">
+            <span class="link-title">Built-in Exception List</span>
+            <span class="link-desc">python.org &mdash; All exception classes</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://docs.python.org/3/howto/urllib2.html" target="_blank" rel="noopener">
+          <span class="link-icon purple">&#127760;</span>
+          <span class="link-text">
+            <span class="link-title">urllib HOWTO</span>
+            <span class="link-desc">Including error handling patterns</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128161;</span> Exceptions You Must Handle</h3>
+      <table class="skill-table">
+        <thead><tr><th>Exception</th><th>When It Occurs</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>urllib.error.URLError</code></td><td>DNS failure, connection refused, network down</td><td>Exchange server not running</td></tr>
+          <tr><td><code>urllib.error.HTTPError</code></td><td>Server returned 4xx or 5xx</td><td>Rate limit (429), bad request (400)</td></tr>
+          <tr><td><code>json.JSONDecodeError</code></td><td>Response body is not valid JSON</td><td>Server returns HTML error page</td></tr>
+          <tr><td><code>socket.timeout</code></td><td>Connection took too long</td><td>Server overloaded</td></tr>
+          <tr><td><code>ZeroDivisionError</code></td><td>Division by zero in SMA/ratios</td><td>Empty price window</td></tr>
+          <tr><td><code>sqlite3.Error</code></td><td>Database operation fails</td><td>Constraint violation, disk full</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: SQL & SQLITE                                -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="sql">
+  <div class="container">
+    <div class="section-label">4 &sol; 10</div>
+    <h2 class="section-title">SQL &amp; SQLite</h2>
+    <p class="section-desc">Every trade, calculation, and audit event is logged to a double-entry SQLite database. You must be comfortable with basic CRUD operations, aggregation, and transaction integrity.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#128451;</span> SQLite in Python</h3>
+      <p>SQLite is embedded in Python's standard library &mdash; zero setup required. The database is a single file (<code>training_ledger.db</code>).</p>
+      <div class="code-block">
+<span class="kw">import</span> sqlite3
+
+<span class="cm"># Connect (creates file if it doesn't exist)</span>
+conn = sqlite3.connect(<span class="str">"training_ledger.db"</span>)
+cursor = conn.cursor()
+
+<span class="cm"># Create table</span>
+cursor.execute(<span class="str">'''CREATE TABLE IF NOT EXISTS trades (
+    id TEXT PRIMARY KEY,
+    day INTEGER,
+    symbol TEXT,
+    side TEXT,
+    price REAL,
+    quantity REAL,
+    total REAL,
+    fee REAL,
+    timestamp TEXT
+)'''</span>)
+
+<span class="cm"># Insert</span>
+cursor.execute(<span class="str">"INSERT INTO trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"</span>,
+    (order_id, day, symbol, side, price, qty, total, fee, ts))
+
+<span class="cm"># Query</span>
+cursor.execute(<span class="str">"SELECT COUNT(*) FROM trades WHERE day=?"</span>, (day,))
+count = cursor.fetchone()[0]
+
+<span class="cm"># Always commit and close</span>
+conn.commit()
+conn.close()
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128214;</span> The Ledger Schema</h3>
+      <p>Your solutions will interact with these tables:</p>
+      <div class="code-block">
+<span class="cm">-- Account balances (9 seeded accounts)</span>
+<span class="kw">CREATE TABLE</span> accounts (
+    code <span class="fn">TEXT</span> PRIMARY KEY,     <span class="cm">-- e.g. '1000', '1100'</span>
+    name <span class="fn">TEXT</span> NOT NULL,         <span class="cm">-- e.g. 'Cash - USD'</span>
+    <span class="kw">type</span> <span class="fn">TEXT</span> NOT NULL,         <span class="cm">-- 'asset', 'revenue', 'expense'</span>
+    balance <span class="fn">REAL</span> DEFAULT 0.0
+);
+
+<span class="cm">-- Trade log (every executed trade)</span>
+<span class="kw">CREATE TABLE</span> trades (
+    id <span class="fn">TEXT</span> PRIMARY KEY,
+    day <span class="fn">INTEGER</span>, symbol <span class="fn">TEXT</span>,
+    side <span class="fn">TEXT</span>, price <span class="fn">REAL</span>,
+    quantity <span class="fn">REAL</span>, total <span class="fn">REAL</span>,
+    fee <span class="fn">REAL</span>, timestamp <span class="fn">TEXT</span>
+);
+
+<span class="cm">-- Double-entry ledger entries</span>
+<span class="kw">CREATE TABLE</span> ledger_entries (
+    id <span class="fn">INTEGER</span> PRIMARY KEY AUTOINCREMENT,
+    trade_id <span class="fn">TEXT</span>, account_code <span class="fn">TEXT</span>,
+    debit <span class="fn">REAL</span>, credit <span class="fn">REAL</span>,
+    description <span class="fn">TEXT</span>
+);
+
+<span class="cm">-- Daily P&amp;L summary</span>
+<span class="kw">CREATE TABLE</span> daily_pnl (
+    day <span class="fn">INTEGER</span>, symbol <span class="fn">TEXT</span>,
+    realized_pnl <span class="fn">REAL</span>, total_fees <span class="fn">REAL</span>,
+    net_pnl <span class="fn">REAL</span>, trade_count <span class="fn">INTEGER</span>
+);
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Learning Resources</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://docs.python.org/3/library/sqlite3.html" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Official sqlite3 Module Docs</span>
+            <span class="link-desc">python.org &mdash; Full reference</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.sqlitetutorial.net/" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128187;</span>
+          <span class="link-text">
+            <span class="link-title">SQLite Tutorial</span>
+            <span class="link-desc">Comprehensive SQLite tutorial site</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.w3schools.com/sql/" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#127760;</span>
+          <span class="link-text">
+            <span class="link-title">W3Schools SQL</span>
+            <span class="link-desc">Interactive SQL reference</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://realpython.com/python-sql-libraries/#sqlite3" target="_blank" rel="noopener">
+          <span class="link-icon purple">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Real Python: sqlite3 Guide</span>
+            <span class="link-desc">Practical Python + SQLite</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#9888;</span> Common Mistake</h3>
+      <div class="info-box warn">
+        <strong>&#9888; Forgetting to commit:</strong> <code>conn.commit()</code> is required after INSERT/UPDATE/DELETE. Without it, your changes disappear when the connection closes. The evaluation engine will find zero trades in the ledger and fail you.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: HTTP & JSON                                 -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="http">
+  <div class="container">
+    <div class="section-label">5 &sol; 10</div>
+    <h2 class="section-title">HTTP &amp; JSON</h2>
+    <p class="section-desc">The mock exchange is an HTTP REST API. You fetch data with GET, execute trades with POST, and parse everything as JSON.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#127760;</span> REST API Endpoints</h3>
+      <table class="skill-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET</code></td><td><code>/v1/ticker?symbol=BTC/USD</code></td><td>Latest price and 24h stats</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/orderbook?symbol=ETH/USDT</code></td><td>5-level order book with bids/asks</td></tr>
+          <tr><td><code>POST</code></td><td><code>/v1/execute</code></td><td>Execute a trade (JSON body)</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/account</code></td><td>Current account balances</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/health</code></td><td>Server status</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128187;</span> Making Requests</h3>
+      <div class="code-block">
+<span class="kw">import</span> urllib.request
+<span class="kw">import</span> json
+
+<span class="cm"># GET request</span>
+url = <span class="str">"http://localhost:8080/v1/ticker?symbol=BTC/USD"</span>
+<span class="kw">with</span> urllib.request.urlopen(url, timeout=5) <span class="kw">as</span> resp:
+    data = json.loads(resp.read().decode())
+
+<span class="fn">print</span>(data)  <span class="cm"># {'symbol': 'BTC/USD', 'price': 67306.92, ...}</span>
+
+<span class="cm"># POST request (execute trade)</span>
+body = json.dumps({
+    <span class="str">"symbol"</span>: <span class="str">"BTC/USD"</span>,
+    <span class="str">"side"</span>: <span class="str">"buy"</span>,
+    <span class="str">"quantity"</span>: 0.5,
+    <span class="str">"type"</span>: <span class="str">"market"</span>
+}).encode()
+
+req = urllib.request.Request(
+    <span class="str">"http://localhost:8080/v1/execute"</span>,
+    data=body,
+    headers={<span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>}
+)
+
+<span class="kw">with</span> urllib.request.urlopen(req, timeout=5) <span class="kw">as</span> resp:
+    result = json.loads(resp.read().decode())
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Learning Resources</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://docs.python.org/3/library/urllib.request.html" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Official urllib.request Docs</span>
+            <span class="link-desc">python.org &mdash; API reference</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://realpython.com/urllib-request/" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128187;</span>
+          <span class="link-text">
+            <span class="link-title">Real Python: urllib Guide</span>
+            <span class="link-desc">Urllib tutorial with examples</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#127760;</span>
+          <span class="link-text">
+            <span class="link-title">MDN: HTTP Request Methods</span>
+            <span class="link-desc">GET, POST, status codes explained</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.json.org/json-en.html" target="_blank" rel="noopener">
+          <span class="link-icon purple">&#128220;</span>
+          <span class="link-text">
+            <span class="link-title">Introducing JSON</span>
+            <span class="link-desc">json.org &mdash; JSON specification</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://docs.python.org/3/library/json.html" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Official json Module Docs</span>
+            <span class="link-desc">python.org &mdash; json.loads/dumps</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://httpstatuses.io/" target="_blank" rel="noopener">
+          <span class="link-icon red">&#9888;</span>
+          <span class="link-text">
+            <span class="link-title">HTTP Status Code Reference</span>
+            <span class="link-desc">Every status code explained</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#9888;</span> Exchange Response Format</h3>
+      <p>The mock exchange returns JSON. Here's what you'll parse:</p>
+      <div class="code-block">
+<span class="cm">// GET /v1/ticker?symbol=BTC/USD</span>
+{
+    <span class="str">"symbol"</span>: <span class="str">"BTC/USD"</span>,
+    <span class="str">"price"</span>: 67306.92,
+    <span class="str">"change_24h_pct"</span>: -4.07,
+    <span class="str">"volume_24h"</span>: 5739.1,
+    <span class="str">"timestamp"</span>: <span class="str">"2026-06-18T22:53:26"</span>
+}
+
+<span class="cm">// GET /v1/orderbook?symbol=ETH/USDT</span>
+{
+    <span class="str">"symbol"</span>: <span class="str">"ETH/USDT"</span>,
+    <span class="str">"bids"</span>: [{<span class="str">"price"</span>: 3142.89, <span class="str">"quantity"</span>: 40.45}, ...],
+    <span class="str">"asks"</span>: [{<span class="str">"price"</span>: 3151.16, <span class="str">"quantity"</span>: 40.45}, ...],
+    <span class="str">"spread"</span>: 8.27,
+    <span class="str">"mid"</span>: 3146.82
+}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 6: COMMAND LINE BASICS                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="cli">
+  <div class="container">
+    <div class="section-label">6 &sol; 10</div>
+    <h2 class="section-title">Command Line Basics</h2>
+    <p class="section-desc">You interact with the Principal Strategist through a terminal. You must be comfortable navigating directories and running Python scripts.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#9000;</span> Essential Commands</h3>
+      <table class="skill-table">
+        <thead><tr><th>Command</th><th>Windows</th><th>macOS &amp; Linux</th></tr></thead>
+        <tbody>
+          <tr><td>List files</td><td><code>dir</code></td><td><code>ls -la</code></td></tr>
+          <tr><td>Change directory</td><td><code>cd folder</code></td><td><code>cd folder</code></td></tr>
+          <tr><td>Print working dir</td><td><code>cd</code></td><td><code>pwd</code></td></tr>
+          <tr><td>Create directory</td><td><code>mkdir folder</code></td><td><code>mkdir -p folder</code></td></tr>
+          <tr><td>Run Python script</td><td><code>python script.py</code></td><td><code>python3 script.py</code></td></tr>
+          <tr><td>View file contents</td><td><code>type file.txt</code></td><td><code>cat file.txt</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Learning Resources</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://learn.microsoft.com/en-us/powershell/scripting/overview" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#9000;</span>
+          <span class="link-text">
+            <span class="link-title">PowerShell Documentation (Windows)</span>
+            <span class="link-desc">microsoft.com &mdash; Official guide</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://ubuntu.com/tutorials/command-line-for-beginners" target="_blank" rel="noopener">
+          <span class="link-icon green">&#9000;</span>
+          <span class="link-text">
+            <span class="link-title">Linux Command Line for Beginners</span>
+            <span class="link-desc">ubuntu.com &mdash; Free tutorial</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://www.codecademy.com/learn/learn-the-command-line" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#127891;</span>
+          <span class="link-text">
+            <span class="link-title">Codecademy: Learn Command Line</span>
+            <span class="link-desc">Interactive course (free tier)</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 7: STANDARD LIBRARY TOUR                       -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="stdlib">
+  <div class="container">
+    <div class="section-label">7 &sol; 10</div>
+    <h2 class="section-title">Standard Library Tour</h2>
+    <p class="section-desc">The Principal Strategizer uses <strong>zero external packages</strong>. Every module it imports ships with Python. Here's what you need to know about each one.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#128451;</span> Modules You Will Use in Your Solutions</h3>
+      <table class="skill-table">
+        <thead><tr><th>Module</th><th>What You Do With It</th><th>Docs Link</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>urllib.request</code></td>
+            <td>Send HTTP GET and POST requests to the mock exchange</td>
+            <td><a href="https://docs.python.org/3/library/urllib.request.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>urllib.error</code></td>
+            <td>Handle HTTPError, URLError, and socket timeouts</td>
+            <td><a href="https://docs.python.org/3/library/urllib.error.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>json</code></td>
+            <td>Parse exchange responses with <code>json.loads()</code> and encode request bodies with <code>json.dumps()</code></td>
+            <td><a href="https://docs.python.org/3/library/json.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>sqlite3</code></td>
+            <td>Connect to the ledger database, execute SQL queries, commit transactions</td>
+            <td><a href="https://docs.python.org/3/library/sqlite3.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>math</code></td>
+            <td><code>sqrt()</code> for standard deviation, <code>log()</code> for returns, trigonometric functions if needed</td>
+            <td><a href="https://docs.python.org/3/library/math.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>statistics</code></td>
+            <td><code>mean()</code>, <code>stdev()</code>, <code>variance()</code> for risk metrics (Days 16+)</td>
+            <td><a href="https://docs.python.org/3/library/statistics.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>time</code></td>
+            <td><code>time.sleep()</code> between polling intervals and backoff delays</td>
+            <td><a href="https://docs.python.org/3/library/time.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+          <tr>
+            <td><code>typing</code></td>
+            <td><code>List</code>, <code>Dict</code>, <code>Optional</code>, <code>Tuple</code>, <code>Union</code> for type annotations</td>
+            <td><a href="https://docs.python.org/3/library/typing.html" target="_blank" style="color:var(--accent-cyan)">docs</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#9881;</span> Modules Used By the Simulator (Understanding Only)</h3>
+      <p>You don't need to master these, but understanding them helps:</p>
+      <table class="skill-table">
+        <thead><tr><th>Module</th><th>Role in the Simulator</th></tr></thead>
+        <tbody>
+          <tr><td><code>cmd</code></td><td>Powers the CLI <code>strategist&gt;</code> prompt and command parsing</td></tr>
+          <tr><td><code>http.server</code></td><td>Runs the mock exchange server on port 8080 and web dashboard on 8081</td></tr>
+          <tr><td><code>socketserver</code></td><td>Threaded mixin allowing multiple simultaneous connections</td></tr>
+          <tr><td><code>threading</code></td><td>Runs both HTTP servers in background daemon threads</td></tr>
+          <tr><td><code>ast</code></td><td>Parses your code into an abstract syntax tree for the audit</td></tr>
+          <tr><td><code>subprocess</code></td><td>Runs your solution in an isolated child process during EOD</td></tr>
+          <tr><td><code>re</code></td><td>Regular expressions for text processing in the auditor</td></tr>
+          <tr><td><code>textwrap</code></td><td>Formatting CLI output with proper indentation</td></tr>
+          <tr><td><code>random</code></td><td>Generates realistic price movements in the mock exchange</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Full Python Standard Library Reference</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://docs.python.org/3/library/index.html" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128218;</span>
+          <span class="link-text">
+            <span class="link-title">Python Standard Library</span>
+            <span class="link-desc">Complete index of every module</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://docs.python.org/3/py-modindex.html" target="_blank" rel="noopener">
+          <span class="link-icon green">&#128196;</span>
+          <span class="link-text">
+            <span class="link-title">Python Module Index</span>
+            <span class="link-desc">A-Z of every built-in module</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 8: FINANCIAL CONCEPTS                          -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="finance">
+  <div class="container">
+    <div class="section-label">8 &sol; 10</div>
+    <h2 class="section-title">Financial Concepts</h2>
+    <p class="section-desc">The curriculum assumes you understand (or can learn) these concepts as you go. Each is introduced in the daily briefings with full context.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#128200;</span> Concepts by Phase</h3>
+      <table class="skill-table">
+        <thead><tr><th>Phase</th><th>Concepts</th><th>Day Introduced</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:var(--accent-cyan)">Phase 1</strong></td>
+            <td>Simple Moving Average (SMA), Exponential Moving Average (EMA),<br>
+                Bollinger Bands, Relative Strength Index (RSI),<br>
+                Variance, Standard Deviation, Sharpe Ratio, Max Drawdown</td>
+            <td>Days 1&ndash;20</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent-gold)">Phase 2</strong></td>
+            <td>Cross-exchange spread, Triangular arbitrage cycles,<br>
+                Kelly Criterion, Position sizing, Slippage,<br>
+                Fill probability, Latency modeling</td>
+            <td>Days 31&ndash;55</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent-red)">Phase 3</strong></td>
+            <td>Value at Risk (VaR), Conditional VaR (CVaR / Expected Shortfall),<br>
+                Stress testing, Scenario analysis,<br>
+                Financial instrument classification, Impairment testing</td>
+            <td>Days 61&ndash;75</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Free Learning Resources (by Concept)</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:8px">
+
+        <div style="background:rgba(6,10,18,0.5);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--accent-cyan);margin-bottom:6px">SMA / EMA</div>
+          <a href="https://www.investopedia.com/terms/m/movingaverage.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Moving Average &rarr;</a>
+          <a href="https://www.investopedia.com/terms/e/ema.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: EMA &rarr;</a>
+        </div>
+
+        <div style="background:rgba(6,10,18,0.5);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--accent-green);margin-bottom:6px">Bollinger Bands</div>
+          <a href="https://www.investopedia.com/terms/b/bollingerbands.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Bollinger Bands &rarr;</a>
+          <a href="https://www.investopedia.com/terms/r/rsi.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: RSI &rarr;</a>
+        </div>
+
+        <div style="background:rgba(6,10,18,0.5);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--accent-gold);margin-bottom:6px">Risk Metrics</div>
+          <a href="https://www.investopedia.com/terms/s/sharperatio.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Sharpe Ratio &rarr;</a>
+          <a href="https://www.investopedia.com/terms/m/maximum-drawdown-mdd.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Max Drawdown &rarr;</a>
+        </div>
+
+        <div style="background:rgba(6,10,18,0.5);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--accent-purple);margin-bottom:6px">Arbitrage</div>
+          <a href="https://www.investopedia.com/terms/a/arbitrage.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Arbitrage &rarr;</a>
+          <a href="https://www.binance.com/en/square/post/6765959571897" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Binance: Triangular Arbitrage &rarr;</a>
+        </div>
+
+        <div style="background:rgba(6,10,18,0.5);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--accent-red);margin-bottom:6px">Position Sizing</div>
+          <a href="https://www.investopedia.com/terms/k/kellycriterion.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Kelly Criterion &rarr;</a>
+          <a href="https://www.investopedia.com/articles/trading/09/kelly-criterion.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">How to Apply Kelly Criterion &rarr;</a>
+        </div>
+
+        <div style="background:rgba(6,10,18,0.5);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--accent-cyan);margin-bottom:6px">VaR &amp; CVaR</div>
+          <a href="https://www.investopedia.com/terms/v/var.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: Value at Risk &rarr;</a>
+          <a href="https://www.investopedia.com/terms/c/conditional_value_at_risk.asp" target="_blank" rel="noopener" style="display:block;font-size:10px;color:var(--text-secondary);text-decoration:none;padding:2px 0">Investopedia: CVaR &rarr;</a>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128161;</span> Key Formulas You'll Implement</h3>
+      <div class="code-block">
+<span class="cm"># SMA - Simple Moving Average</span>
+<span class="kw">def</span> <span class="fn">sma</span>(prices: <span class="fn">List</span>[<span class="fn">float</span>], window: <span class="fn">int</span>) -&gt; <span class="fn">List</span>[<span class="fn">Optional</span>[<span class="fn">float</span>]]:
+    result: <span class="fn">List</span>[<span class="fn">Optional</span>[<span class="fn">float</span>]] = []
+    <span class="kw">for</span> i <span class="kw">in</span> range(len(prices)):
+        <span class="kw">if</span> i &lt; window - 1:
+            result.append(<span class="kw">None</span>)
+        <span class="kw">else</span>:
+            result.append(sum(prices[i-window+1:i+1]) / window)
+    <span class="kw">return</span> result
+
+<span class="cm"># Sharpe Ratio (annualized)</span>
+<span class="kw">def</span> <span class="fn">sharpe_ratio</span>(returns: <span class="fn">List</span>[<span class="fn">float</span>], risk_free_rate: <span class="fn">float</span> = 0.0) -&gt; <span class="fn">float</span>:
+    excess_returns = [r - risk_free_rate <span class="kw">for</span> r <span class="kw">in</span> returns]
+    <span class="kw">return</span> (statistics.mean(excess_returns) / statistics.stdev(excess_returns)) * math.sqrt(252)
+
+<span class="cm"># Kelly Criterion (optimal bet size)</span>
+<span class="kw">def</span> <span class="fn">kelly_fraction</span>(win_prob: <span class="fn">float</span>, win_loss_ratio: <span class="fn">float</span>) -&gt; <span class="fn">float</span>:
+    <span class="kw">return</span> (win_prob * win_loss_ratio - (1 - win_prob)) / win_loss_ratio
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 9: CMA / SOCPA / IFRS                          -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="standards">
+  <div class="container">
+    <div class="section-label">9 &sol; 10</div>
+    <h2 class="section-title">CMA, SOCPA &amp; IFRS Standards</h2>
+    <p class="section-desc">The simulator enforces three real-world professional accounting frameworks. You don't need to be a certified accountant, but you must understand what each standard requires of your code.</p>
+
+    <div class="card">
+      <h3><span class="icon">&#9878;</span> CMA &mdash; Certified Management Accountant</h3>
+      <p>The <strong>Institute of Management Accountants (IMA)</strong> CMA certification focuses on financial planning, analysis, control, and decision support. In the simulator, CMA standards apply to how you structure your data pipelines and financial calculations.</p>
+      <table class="skill-table">
+        <thead><tr><th>Section</th><th>Relevance</th><th>Simulator Application</th></tr></thead>
+        <tbody>
+          <tr><td>Part 1, Section C</td><td>Financial Statement Analysis</td><td>Analyzing order book data, calculating indicators</td></tr>
+          <tr><td>Part 1, Section E</td><td>Investment Decisions</td><td>Position sizing, risk-reward evaluation</td></tr>
+          <tr><td>Part 2, Section A</td><td>Financial Statement Analysis</td><td>P&amp;L reporting, ledger reconciliation</td></tr>
+          <tr><td>Part 2, Section D</td><td>Risk Management</td><td>VaR, CVaR, stress testing, exposure limits</td></tr>
+        </tbody>
+      </table>
+      <div class="tag-row" style="margin-top:8px">
+        <a class="tag cyan" href="https://www.imanet.org/en/CMA" target="_blank" rel="noopener" style="text-decoration:none">IMA CMA Program &rarr;</a>
+        <a class="tag green" href="https://www.investopedia.com/terms/c/cma.asp" target="_blank" rel="noopener" style="text-decoration:none">Investopedia: CMA Overview &rarr;</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#9878;</span> SOCPA &mdash; Saudi Organization for Chartered and Professional Accountants</h3>
+      <p><strong>SOCPA</strong> sets accounting, auditing, and governance standards in Saudi Arabia. In the simulator, SOCPA standards apply to your audit trails, documentation requirements, and trade recording procedures.</p>
+      <table class="skill-table">
+        <thead><tr><th>Standard</th><th>Relevance</th><th>Simulator Application</th></tr></thead>
+        <tbody>
+          <tr><td>Standard 4</td><td>Documentation &amp; audit trails</td><td>Every trade must have complete provenance: timestamps, authorization, execution details</td></tr>
+          <tr><td>Standard 7</td><td>Financial instruments</td><td>Classification of crypto assets, measurement at fair value</td></tr>
+          <tr><td>Standard 12</td><td>Revenue recognition</td><td>Trade revenue recorded correctly, matched with fees</td></tr>
+        </tbody>
+      </table>
+      <div class="tag-row" style="margin-top:8px">
+        <a class="tag cyan" href="https://socpa.org.sa/" target="_blank" rel="noopener" style="text-decoration:none">SOCPA Official Site &rarr;</a>
+        <a class="tag green" href="https://www.socpa.org.sa/Socpa/Standards-and-guidelines.aspx" target="_blank" rel="noopener" style="text-decoration:none">SOCPA Standards &rarr;</a>
+      </div>
+      <div class="info-box tip" style="margin-top:10px">
+        <strong>&#9654; Practical Tip:</strong> In the simulator, SOCPA compliance means <strong>logging everything</strong> &mdash; every trade, every calculation, every decision. If it's not in the ledger, it didn't happen.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#9878;</span> IFRS &mdash; International Financial Reporting Standards</h3>
+      <p><strong>IFRS</strong> provides global accounting standards. In the simulator, IFRS 9 (Financial Instruments) is the most relevant standard for how you classify and report trading assets.</p>
+      <table class="skill-table">
+        <thead><tr><th>Standard</th><th>Relevance</th><th>Simulator Application</th></tr></thead>
+        <tbody>
+          <tr><td>IFRS 9</td><td>Financial Instruments</td><td>Classification (FVTPL, FVTOCI, amortized cost), impairment, hedge accounting</td></tr>
+          <tr><td>IFRS 13</td><td>Fair Value Measurement</td><td>Hierarchy levels (Level 1/2/3), disclosure requirements</td></tr>
+          <tr><td>IFRS 15</td><td>Revenue from Contracts</td><td>When and how to recognize trade revenue</td></tr>
+        </tbody>
+      </table>
+      <div class="tag-row" style="margin-top:8px">
+        <a class="tag cyan" href="https://www.ifrs.org/issued-standards/list-of-standards/ifrs-9-financial-instruments/" target="_blank" rel="noopener" style="text-decoration:none">IFRS 9 Full Text &rarr;</a>
+        <a class="tag green" href="https://www.ifrs.org/issued-standards/list-of-standards/ifrs-13-fair-value-measurement/" target="_blank" rel="noopener" style="text-decoration:none">IFRS 13 Full Text &rarr;</a>
+        <a class="tag gold" href="https://www.investopedia.com/terms/i/ifrs.asp" target="_blank" rel="noopener" style="text-decoration:none">Investopedia: IFRS Overview &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 10: ENVIRONMENT SETUP                          -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="setup">
+  <div class="container">
+    <div class="section-label">10 &sol; 10</div>
+    <h2 class="section-title">Environment Setup</h2>
+    <p class="section-desc">Everything you need to install and configure before running the simulator. <strong>Spoiler: it's almost nothing.</strong></p>
+
+    <div class="card">
+      <h3><span class="icon">&#9881;</span> System Requirements</h3>
+      <table class="skill-table">
+        <thead><tr><th>Requirement</th><th>Minimum</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td>Python version</td><td>3.8</td><td>3.11 &ndash; 3.13</td></tr>
+          <tr><td>RAM</td><td>128 MB</td><td>512 MB+</td></tr>
+          <tr><td>Disk space</td><td>50 MB</td><td>100 MB</td></tr>
+          <tr><td>OS</td><td>Any (Windows/macOS/Linux)</td><td>&mdash;</td></tr>
+          <tr><td>Network</td><td>localhost only (ports 8080 + 8081)</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128279;</span> Verification Links</h3>
+      <div class="link-grid">
+        <a class="link-card" href="https://www.python.org/downloads/" target="_blank" rel="noopener">
+          <span class="link-icon cyan">&#128187;</span>
+          <span class="link-text">
+            <span class="link-title">Download Python</span>
+            <span class="link-desc">python.org &mdash; Latest versions</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://docs.python.org/3/using/windows.html" target="_blank" rel="noopener">
+          <span class="link-icon green">&#9000;</span>
+          <span class="link-text">
+            <span class="link-title">Python on Windows Guide</span>
+            <span class="link-desc">Installation &amp; PATH setup</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-card" href="https://packaging.python.org/en/latest/tutorials/installing-packages/" target="_blank" rel="noopener">
+          <span class="link-icon gold">&#128230;</span>
+          <span class="link-text">
+            <span class="link-title">Python Package Installation</span>
+            <span class="link-desc">pip tutorial (not needed, but good to know)</span>
+          </span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">&#128736;</span> Quick Verification</h3>
+      <p>Open a terminal and run these commands to confirm your environment is ready:</p>
+      <div class="code-block">
+<span class="cm"># Check Python version</span>
+python --version
+<span class="cm"># Expected: Python 3.8+ </span>
+
+<span class="cm"># Verify ports are free</span>
+<span class="cm"># (nothing should be listening on 8080 or 8081)</span>
+
+<span class="cm"># Test import of key modules</span>
+python -c <span class="str">"import sqlite3, json, urllib, ast, http.server, cmd, threading; print('All modules OK')"</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- FINAL CHECKLIST                                        -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="checklist">
+  <div class="container">
+    <div class="section-label">&#9989; Final Checklist</div>
+    <h2 class="section-title">Are You Ready?</h2>
+    <p class="section-desc">Mark off each item before you type <code>start</code> for the first time.</p>
+
+    <div class="card">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:4px">
+
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I can write Python functions with type annotations</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I understand <code>try/except/else/finally</code> for all network calls</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I can use <code>urllib.request</code> for GET and POST requests</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I can parse JSON with <code>json.loads()</code> and encode with <code>json.dumps()</code></span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I can execute SQL queries via <code>sqlite3</code> (INSERT, SELECT, CREATE TABLE)</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I know to call <code>conn.commit()</code> after writing to the database</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I understand list slicing: <code>prices[-5:]</code> for sliding windows</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I know what SMA, EMA, and Sharpe Ratio are conceptually</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">I have Python 3.8+ installed and working</span>
+        </div>
+        <div class="check-item">
+          <span class="box"></span>
+          <span class="text">Ports 8080 and 8081 are free on my machine</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">&#10003; Checked all 10? You're ready to begin.</div>
+      <div style="font-size:13px;color:var(--accent-cyan)">
+        <strong>&#9654; Next step:</strong> <code style="background:var(--bg-card);padding:2px 8px;border-radius:4px">python arbitrage_academy.py</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer class="footer">
+  <div class="container">
+    <p>Principal Strategist &mdash; Before You Begin Guide v1.0.0</p>
+    <p style="margin-top:6px">
+      <a href="TRAINING_PROGRAM.html">Training Program</a> &middot;
+      <a href="promo.html">Landing Page</a> &middot;
+      <a href="PRODUCT.md">Product Details</a> &middot;
+      <a href="EULA.md">License</a> &middot;
+      <a href="http://localhost:8081">Dashboard</a>
+    </p>
+    <p style="margin-top:6px;font-size:10px">
+      All linked resources are free and publicly available. Python is a trademark of the Python Software Foundation.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

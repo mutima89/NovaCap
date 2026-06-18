@@ -1,0 +1,42 @@
+# ─── Python ───────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+*.spec
+
+# ─── Virtual Environments ─────────────────────────
+.venv/
+venv/
+env/
+.conda/
+
+# ─── IDE & Editor ─────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Project-specific ─────────────────────────────
+workspace/
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.tmp
+.tmp/
+save_state.json
+node_modules/
+package.json
+package-lock.json
+
+# ─── Logs ────────────────────────────────────────
+*.log
