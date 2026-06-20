@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
     <img src="https://img.shields.io/badge/dependencies-none-brightgreen?style=flat-square" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/LOC-~8,000-48dbfb?style=flat-square" alt="~8,000 LOC">
-    <img src="https://img.shields.io/badge/license-Proprietary-64748b?style=flat-square" alt="License">
+    <img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="License MIT">
     <img src="https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-94a3b8?style=flat-square" alt="Platform">
     <img src="https://img.shields.io/badge/status-active-22c55e?style=flat-square" alt="Status: Active">
   </p>
@@ -224,8 +224,8 @@ NovaCap/
 ├── TRAINING_PROGRAM.md       # Markdown version of the syllabus
 ├── promo.html                # Product landing page
 ├── PRODUCT.md                # Technical product documentation
-├── SALES_PAGE.md             # Sales and listing copy with pricing
-├── EULA.md                   # End-User License Agreement — 4 tiers
+├── SALES_PAGE.md             # Sales and listing copy
+├── EULA.md                   # MIT License
 ├── docs/                     # Generated PDF documentation
 │   ├── promo.pdf
 │   ├── product.pdf
@@ -247,8 +247,8 @@ All documentation is available as rendered PDFs in the `docs/` directory:
 |----------|-------------|
 | [📄 Promo](docs/promo.pdf) | Product landing page with full feature showcase |
 | [📄 Product](docs/product.pdf) | Technical README with architecture and CLI reference |
-| [📄 Sales Page](docs/sales-page.pdf) | Sales / listing copy with pricing tiers |
-| [📄 EULA](docs/eula.pdf) | End-User License Agreement — 4 tiers |
+| [📄 Sales Page](docs/sales-page.pdf) | Sales / listing copy |
+| [📄 License](docs/eula.pdf) | MIT License — full terms |
 | [📄 Training Program](docs/training-program.pdf) | Full 90-day syllabus with scoring breakdown |
 | [📄 Before You Begin](docs/before-you-begin.pdf) | Comprehensive prep guide with Python & finance concepts |
 
@@ -256,16 +256,11 @@ Open [`docs/index.html`](docs/index.html) for a dark-themed hub linking to all d
 
 ---
 
-## 📜 Licensing
+## 📜 License
 
-| Tier | Price | Audience |
-|------|-------|----------|
-| **Individual** | $79 | Solo developers, students, personal use |
-| **Professional** | $249 | Freelancers, commercial use |
-| **Academy** | $750 | Classrooms, bootcamps (up to 30 seats) |
-| **Enterprise** | $2,500+ | Unlimited seats, custom modules, white-label |
+This project is licensed under the **MIT License** — see [`EULA.md`](EULA.md) for the full text.
 
-See [`EULA.md`](EULA.md) for complete terms and conditions.
+You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided the copyright notice is preserved.
 
 ---
 
@@ -282,11 +277,11 @@ See [`EULA.md`](EULA.md) for complete terms and conditions.
 
 ## 🤝 Contributing
 
-NovaCap is a proprietary training platform. Contributions, bug reports, and feature requests are welcome via the [issue tracker](https://github.com/mutima89/NovaCap/issues).
+Contributions, bug reports, and feature requests are welcome via the [issue tracker](https://github.com/mutima89/NovaCap/issues).
 
 Before contributing:
 
-1. Review the [`EULA.md`](EULA.md) for licensing terms
+1. This project is [MIT licensed](EULA.md) — contributions are accepted under the same terms
 2. Ensure your code passes the AST auditor checks
 3. Maintain zero-dependency policy (standard library only)
 
@@ -307,7 +302,7 @@ NovaCap Financial Technologies Ltd. develops quantitative training simulations f
       NovaCap Financial Technologies Ltd. &nbsp;·&nbsp;
       <a href="https://github.com/mutima89/NovaCap">GitHub</a> &nbsp;·&nbsp;
       <a href="docs/index.html">Documentation</a> &nbsp;·&nbsp;
-      <a href="EULA.md">License</a>
+      <a href="EULA.md">MIT License</a>
     </sub>
   </p>
   <p>

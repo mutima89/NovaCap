@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaCap — LinkedIn Content Suite</title>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0f;
+      color: #e2e8f0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0a0a0f; }
+    ::-webkit-scrollbar-thumb { background: #1e1e2e; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2d2d44; }
+
+    /* ── Hero ────────────────────────────────────────────────────────── */
+    .hero {
+      padding: 80px 24px 60px;
+      text-align: center;
+      background: linear-gradient(180deg, #0a0a0f 0%, #111118 50%, #0a0a0f 100%);
+      border-bottom: 1px solid #1e1e2e;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(99,102,241,0.03) 0%, transparent 60%),
+                  radial-gradient(circle at 70% 50%, rgba(139,92,246,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 100px;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #818cf8;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #e2e8f0 0%, #818cf8 50%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+    }
+    .hero p {
+      max-width: 560px;
+      margin: 16px auto 0;
+      color: #94a3b8;
+      font-size: 18px;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #e2e8f0;
+    }
+    .hero-stat-label {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* ── Navigation ──────────────────────────────────────────────────── */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid #1e1e2e;
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      overflow-x: auto;
+      padding: 12px 0;
+      scrollbar-width: none;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    .nav-brand {
+      font-weight: 800;
+      font-size: 16px;
+      color: #818cf8;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .nav-link:hover { color: #e2e8f0; background: rgba(255,255,255,0.04); }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Section Headers ─────────────────────────────────────────────── */
+    .section-header {
+      padding: 60px 0 32px;
+      text-align: center;
+    }
+    .section-header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .section-header p {
+      color: #64748b;
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    /* ── Post Card ───────────────────────────────────────────────────── */
+    .post-card {
+      background: #111118;
+      border: 1px solid #1e1e2e;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .post-card:hover { border-color: #2d2d44; }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 24px 0;
+    }
+    .post-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .post-author h4 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .post-author .handle {
+      font-size: 13px;
+      color: #64748b;
+    }
+    .post-badge {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-launch   { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+    .badge-tech     { background: rgba(34,211,238,0.12); color: #67e8f9; border: 1px solid rgba(34,211,238,0.2); }
+    .badge-story    { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .badge-insight  { background: rgba(52,211,153,0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
+    .badge-milestone { background: rgba(244,114,182,0.12); color: #f472b6; border: 1px solid rgba(244,114,182,0.2); }
+
+    .post-content {
+      padding: 16px 24px 8px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .post-content p { margin-bottom: 12px; }
+    .post-content p:last-child { margin-bottom: 0; }
+
+    .post-content .hashtag { color: #818cf8; font-weight: 500; }
+    .post-content .mention { color: #67e8f9; font-weight: 500; }
+    .post-content .repo-link {
+      display: inline-block;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #818cf8;
+      text-decoration: none;
+      margin: 4px 0;
+      transition: all 0.15s;
+    }
+    .post-content .repo-link:hover {
+      background: rgba(99,102,241,0.15);
+      border-color: rgba(99,102,241,0.4);
+    }
+    .post-content ul, .post-content ol {
+      margin: 8px 0 12px;
+      padding-left: 24px;
+    }
+    .post-content li { margin-bottom: 6px; }
+    .post-content blockquote {
+      border-left: 3px solid #2d2d44;
+      padding-left: 16px;
+      margin: 12px 0;
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .post-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #1a1a2e;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #67e8f9;
+    }
+    .post-content .divider {
+      text-align: center;
+      color: #2d2d44;
+      font-size: 20px;
+      margin: 16px 0;
+      letter-spacing: 8px;
+    }
+
+    .post-footer {
+      padding: 8px 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: 1px solid #2d2d44;
+      background: transparent;
+      color: #94a3b8;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: #3d3d54;
+      color: #e2e8f0;
+    }
+    .copy-btn.copied {
+      background: rgba(52,211,153,0.1);
+      border-color: #34d399;
+      color: #34d399;
+    }
+    .post-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      background: #1a1a2e;
+      margin-right: 4px;
+    }
+    .post-engagements {
+      margin-left: auto;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ── Tips Section ────────────────────────────────────────────────── */
+    .tips-section {
+      margin: 40px 0 80px;
+    }
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .tip-card {
+      background: #111118;
+      border: 1px solid #1e1e2e;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .tip-card .icon { font-size: 28px; margin-bottom: 12px; }
+    .tip-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .tip-card p { font-size: 13px; color: #64748b; line-height: 1.6; }
+
+    /* ── Calendar ────────────────────────────────────────────────────── */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .calendar-week {
+      background: #111118;
+      border: 1px solid #1e1e2e;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .calendar-week .week-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+    .calendar-week .week-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 4px 0 6px;
+    }
+    .calendar-week .week-desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+    .week-launch { border-left: 3px solid #818cf8; }
+    .week-tech   { border-left: 3px solid #67e8f9; }
+    .week-story  { border-left: 3px solid #fbbf24; }
+    .week-insight { border-left: 3px solid #34d399; }
+    .week-milestone { border-left: 3px solid #f472b6; }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid #1e1e2e;
+      color: #475569;
+      font-size: 13px;
+    }
+    .footer a { color: #818cf8; text-decoration: none; font-weight: 500; }
+
+    /* ── Toast ────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a2e;
+      border: 1px solid #2d2d44;
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #e2e8f0;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .hero { padding: 48px 16px 40px; }
+      .hero-stats { gap: 20px; }
+      .post-header { flex-wrap: wrap; }
+      .post-badge { margin-left: 0; }
+      .post-footer { flex-direction: column; align-items: flex-start; }
+      .post-engagements { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- HERO                                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-badge">⚡ LinkedIn Content Suite</div>
+    <h1>NovaCap · Principal Strategist</h1>
+    <p>12 posts ready to publish — pick, personalize, and post.<br />Designed to build authority in Python, finance, and quantitative development.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value">12</div>
+        <div class="hero-stat-label">Ready-to-Post Drafts</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">6</div>
+        <div class="hero-stat-label">Campaign Categories</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">90</div>
+        <div class="hero-stat-label">Day Content Calendar</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">~8k</div>
+        <div class="hero-stat-label">Lines of Python Story</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- NAV                                                                -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <span class="nav-brand">⚡ NovaCap</span>
+      <a href="#repo" class="nav-link">Repository</a>
+      <a href="#post1" class="nav-link">Launch</a>
+      <a href="#post2" class="nav-link">Zero Dependencies</a>
+      <a href="#post3" class="nav-link">Quant Developer</a>
+      <a href="#post4" class="nav-link">AST Deep-Dive</a>
+      <a href="#post5" class="nav-link">Architecture</a>
+      <a href="#post6" class="nav-link">Performance</a>
+      <a href="#post7" class="nav-link">Double-Entry</a>
+      <a href="#post8" class="nav-link">Open Source</a>
+      <a href="#post9" class="nav-link">Personal Story</a>
+      <a href="#post10" class="nav-link">90-Day Journey</a>
+      <a href="#post11" class="nav-link">Building in Public</a>
+      <a href="#post12" class="nav-link">Scoring</a>
+      <a href="#calendar" class="nav-link">Calendar</a>
+      <a href="#tips" class="nav-link">Tips</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- REPO LINK BANNER                                                   -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="container" id="repo">
+    <div style="
+      margin-top: 40px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 14px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    ">
+      <div>
+        <div style="font-size:13px; color:#64748b; font-weight:500;">REPOSITORY</div>
+        <div style="font-size:20px; font-weight:700; margin-top:2px;">github.com/mutima89/NovaCap</div>
+        <div style="font-size:14px; color:#94a3b8; margin-top:4px;">
+          ⭐ Star the repo to support the project
+        </div>
+      </div>
+      <a href="https://github.com/mutima89/NovaCap" target="_blank" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        border-radius: 10px;
+        background: #6366f1;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: background 0.15s;
+      " onmouseover="this.style.background='#5558e6'" onmouseout="this.style.background='#6366f1'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- POSTS                                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="container" style="margin-top: 48px;">
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 1: Launch Announcement                                   -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post1" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-launch">🚀 launch</span>
+      </div>
+      <div class="post-content">
+        <p>
+          For the past several months, I've been building something that sits at the intersection of two worlds I care deeply about: <strong>quantitative finance</strong> and <strong>Python engineering</strong>.
+        </p>
+        <p>
+          Today I'm releasing <strong>NovaCap · Principal Strategist</strong> — a 90-day algorithmic trading training simulator that I built entirely with Python's standard library. Zero external dependencies. No pip install. No configuration.
+        </p>
+        <p>
+          Here's what it does in one sentence: <em>You write trading strategies against a live mock exchange, pass rigorous AST code audits, and get scored 0–100 every day. Score 100 or you don't advance.</em>
+        </p>
+        <p>What started as a personal learning project became a complete, hard-mode training platform with:</p>
+        <ul>
+          <li>A threaded mock exchange serving REST order books</li>
+          <li>A double-entry SQLite ledger that enforces accounting integrity</li>
+          <li>An AST static auditor that checks your code for 9 categories of violations</li>
+          <li>A three-stage EOD evaluation pipeline</li>
+          <li>A dark-themed web dashboard with live ticker feed and code editor</li>
+          <li>A 90-day curriculum across three phases: Data Ingestion → Arbitrage Logic → SOCPA Compliance</li>
+        </ul>
+        <p>Roughly 8,000 lines of Python. Zero pip packages. One mission.</p>
+        <p>
+          This is not a tutorial. This is a simulation of the most demanding trading desk in the region.
+        </p>
+        <p>
+          The repository is public. I'd love to hear your thoughts, feedback, and ideas.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#QuantitativeFinance</span>
+          <span class="hashtag">#AlgorithmicTrading</span>
+          <span class="hashtag">#OpenSource</span>
+          <span class="hashtag">#FinTech</span>
+          <span class="hashtag">#SoftwareEngineering</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post1-text')">📋 Copy Post</button>
+        <span class="post-tag">announcement</span>
+        <span class="post-tag">launch</span>
+        <span class="post-tag">personal</span>
+        <span class="post-engagements">🔥 Best for: Launch Week</span>
+      </div>
+    </div>
+    <!-- hidden raw -->
+    <textarea id="post1-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+For the past several months, I've been building something that sits at the intersection of two worlds I care deeply about: quantitative finance and Python engineering.
+
+Today I'm releasing NovaCap · Principal Strategist — a 90-day algorithmic trading training simulator that I built entirely with Python's standard library. Zero external dependencies. No pip install. No configuration.
+
+Here's what it does in one sentence: You write trading strategies against a live mock exchange, pass rigorous AST code audits, and get scored 0–100 every day. Score 100 or you don't advance.
+
+What started as a personal learning project became a complete, hard-mode training platform with:
+
+• A threaded mock exchange serving REST order books
+• A double-entry SQLite ledger that enforces accounting integrity
+• An AST static auditor that checks your code for 9 categories of violations
+• A three-stage EOD evaluation pipeline
+• A dark-themed web dashboard with live ticker feed and code editor
+• A 90-day curriculum across three phases: Data Ingestion → Arbitrage Logic → SOCPA Compliance
+
+Roughly 8,000 lines of Python. Zero pip packages. One mission.
+
+This is not a tutorial. This is a simulation of the most demanding trading desk in the region.
+
+The repository is public. I'd love to hear your thoughts, feedback, and ideas.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Python #QuantitativeFinance #AlgorithmicTrading #OpenSource #FinTech #SoftwareEngineering</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 2: Zero Dependencies Deep Dive                          -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post2" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-tech">🔧 tech deep-dive</span>
+      </div>
+      <div class="post-content">
+        <p><strong>What can you build with zero dependencies?</strong></p>
+        <p>
+          I challenged myself to build a complete algorithmic trading training simulator using <em>nothing</em> but Python's standard library. No FastAPI. No Flask. No NumPy. No Pandas. Not even a requirements.txt file.
+        </p>
+        <p>
+          The result is <strong>NovaCap · Principal Strategist</strong> — and here's what Python's standard library alone delivered:
+        </p>
+        <ul>
+          <li><code>http.server</code> + <code>socketserver</code> → A threaded REST mock exchange with live order books</li>
+          <li><code>sqlite3</code> → Full double-entry accounting engine with P&amp;L tracking and audit trails</li>
+          <li><code>ast</code> → Static code auditor that parses your strategy source and flags 9 categories of violations</li>
+          <li><code>threading</code> + <code>subprocess</code> → Concurrent exchange, dashboard, and test execution</li>
+          <li><code>cmd.Cmd</code> → Full CLI with 10 commands: start, run, eod, advance, audit, and more</li>
+          <li><code>pathlib</code> + <code>json</code> → Workspace generation, state persistence, market data serialization</li>
+        </ul>
+        <p>
+          No microservices. No containers. No docker-compose. One Python process. Three servers. Full simulation.
+        </p>
+        <p>
+          I think there's something poetic about building complex systems with simple tools. It forces you to understand every layer of abstraction — and it keeps your deploy surface area vanishingly small.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#StandardLibrary</span>
+          <span class="hashtag">#CleanCode</span>
+          <span class="hashtag">#SoftwareArchitecture</span>
+          <span class="hashtag">#Backend</span>
+          <span class="hashtag">#Tech</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post2-text')">📋 Copy Post</button>
+        <span class="post-tag">tech</span>
+        <span class="post-tag">engineering</span>
+        <span class="post-tag">zero-deps</span>
+        <span class="post-engagements">💡 Best for: Busy Developer / Monday</span>
+      </div>
+    </div>
+    <textarea id="post2-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+What can you build with zero dependencies?
+
+I challenged myself to build a complete algorithmic trading training simulator using nothing but Python's standard library. No FastAPI. No Flask. No NumPy. No Pandas. Not even a requirements.txt file.
+
+The result is NovaCap · Principal Strategist — and here's what Python's standard library alone delivered:
+
+• http.server + socketserver → A threaded REST mock exchange with live order books
+• sqlite3 → Full double-entry accounting engine with P&L tracking and audit trails
+• ast → Static code auditor that parses your strategy source and flags 9 categories of violations
+• threading + subprocess → Concurrent exchange, dashboard, and test execution
+• cmd.Cmd → Full CLI with 10 commands: start, run, eod, advance, audit, and more
+• pathlib + json → Workspace generation, state persistence, market data serialization
+
+No microservices. No containers. No docker-compose. One Python process. Three servers. Full simulation.
+
+I think there's something poetic about building complex systems with simple tools. It forces you to understand every layer of abstraction — and it keeps your deploy surface area vanishingly small.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Python #StandardLibrary #CleanCode #SoftwareArchitecture #Backend #Tech</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 3: The Quant Developer Mindset                          -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post3" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-story">📖 perspective</span>
+      </div>
+      <div class="post-content">
+        <p><strong>What does it actually take to become a quantitative developer?</strong></p>
+        <p>
+          I've spent the last year exploring this question — not through courses or certifications, but by building.
+        </p>
+        <p>
+          The typical advice is: learn Python, learn statistics, read Hull's "Options, Futures, and Other Derivatives." All good advice. But there's a gap between knowing the theory and <em>feeling</em> what happens when your algorithm places a trade, the exchange fills it at a different price than expected, and your P&amp;L suddenly doesn't balance.
+        </p>
+        <p>
+          That gap is what <strong>NovaCap · Principal Strategist</strong> was built to bridge.
+        </p>
+        <p>
+          It's a simulator that puts you in the seat of a trading desk analyst for 90 days. You write Python code every day. You interact with a live mock exchange. You maintain a double-entry ledger. Your code gets AST-audited, test-suite validated, and scored.
+        </p>
+        <p>
+          Score below 100? You repeat the day. The platform does not negotiate.
+        </p>
+        <p>
+          The curriculum is structured in three phases:
+        </p>
+        <ol>
+          <li><strong>Days 1–30:</strong> Market data ingestion, technical indicators, risk math</li>
+          <li><strong>Days 31–60:</strong> Cross-exchange arbitrage, Kelly Criterion, position sizing</li>
+          <li><strong>Days 61–90:</strong> Slippage modeling, SOCPA compliance, IFRS 9 reporting</li>
+        </ol>
+        <p>
+          If you're a Python developer curious about finance, or a finance professional learning to code — this might be exactly the kind of playground you need.
+        </p>
+        <p>
+          It's open source. Fork it, run it, break it, learn from it.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#QuantDeveloper</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#AlgorithmicTrading</span>
+          <span class="hashtag">#Finance</span>
+          <span class="hashtag">#CareerGrowth</span>
+          <span class="hashtag">#EdTech</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post3-text')">📋 Copy Post</button>
+        <span class="post-tag">career</span>
+        <span class="post-tag">quant</span>
+        <span class="post-tag">perspective</span>
+        <span class="post-engagements">🎯 Best for: Career-Focused Tuesday</span>
+      </div>
+    </div>
+    <textarea id="post3-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+What does it actually take to become a quantitative developer?
+
+I've spent the last year exploring this question — not through courses or certifications, but by building.
+
+The typical advice is: learn Python, learn statistics, read Hull's "Options, Futures, and Other Derivatives." All good advice. But there's a gap between knowing the theory and feeling what happens when your algorithm places a trade, the exchange fills it at a different price than expected, and your P&L suddenly doesn't balance.
+
+That gap is what NovaCap · Principal Strategist was built to bridge.
+
+It's a simulator that puts you in the seat of a trading desk analyst for 90 days. You write Python code every day. You interact with a live mock exchange. You maintain a double-entry ledger. Your code gets AST-audited, test-suite validated, and scored.
+
+Score below 100? You repeat the day. The platform does not negotiate.
+
+The curriculum is structured in three phases:
+1. Days 1–30: Market data ingestion, technical indicators, risk math
+2. Days 31–60: Cross-exchange arbitrage, Kelly Criterion, position sizing
+3. Days 61–90: Slippage modeling, SOCPA compliance, IFRS 9 reporting
+
+If you're a Python developer curious about finance, or a finance professional learning to code — this might be exactly the kind of playground you need.
+
+It's open source. Fork it, run it, break it, learn from it.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#QuantDeveloper #Python #AlgorithmicTrading #Finance #CareerGrowth #EdTech</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 4: AST Auditor Deep-Dive                                -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post4" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-tech">🔧 deep-dive</span>
+      </div>
+      <div class="post-content">
+        <p><strong>How I built a code auditor using Python's built-in AST module</strong></p>
+        <p>
+          In NovaCap, every piece of strategy code that a trainee writes gets <em>parsed and inspected before it ever executes</em>.
+        </p>
+        <p>
+          Python's <code>ast</code> module gives you the ability to walk through any Python source file's syntax tree — and with that, you can enforce code quality rules automatically.
+        </p>
+        <p>My AST auditor checks for 9 violation categories:</p>
+        <ul>
+          <li><strong>Critical:</strong> Missing error handling, <code>eval()</code>/<code>exec()</code> calls, mutable default arguments</li>
+          <li><strong>Structural:</strong> Try blocks without except, bare except clauses, function complexity beyond nesting limits</li>
+          <li><strong>Safety:</strong> Global state mutations, unsafe input handling, missing return annotations on critical functions</li>
+          <li><strong>Style:</strong> Deeply nested loops (beyond 3 levels), functions over 50 lines, excessive branching</li>
+        </ul>
+        <p>
+          Each violation carries a penalty. Two critical violations = automatic 0 for the day. The scoring system is designed to be harsh because the stakes in real trading are even harsher.
+        </p>
+        <p>
+          The entire auditor is about 300 lines of Python — a testament to how powerful the standard library really is.
+        </p>
+        <p>
+          If you haven't explored Python's <code>ast</code> module, I highly recommend it. It's one of those tools that changes how you think about code analysis and meta-programming.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#AST</span>
+          <span class="hashtag">#CodeQuality</span>
+          <span class="hashtag">#StaticAnalysis</span>
+          <span class="hashtag">#SoftwareEngineering</span>
+          <span class="hashtag">#MetaProgramming</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post4-text')">📋 Copy Post</button>
+        <span class="post-tag">python</span>
+        <span class="post-tag">ast</span>
+        <span class="post-tag">engineering</span>
+        <span class="post-engagements">🔬 Best for: Technical Wednesday</span>
+      </div>
+    </div>
+    <textarea id="post4-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+How I built a code auditor using Python's built-in AST module
+
+In NovaCap, every piece of strategy code that a trainee writes gets parsed and inspected before it ever executes.
+
+Python's ast module gives you the ability to walk through any Python source file's syntax tree — and with that, you can enforce code quality rules automatically.
+
+My AST auditor checks for 9 violation categories:
+
+• Critical: Missing error handling, eval()/exec() calls, mutable default arguments
+• Structural: Try blocks without except, bare except clauses, function complexity beyond nesting limits
+• Safety: Global state mutations, unsafe input handling, missing return annotations on critical functions
+• Style: Deeply nested loops (beyond 3 levels), functions over 50 lines, excessive branching
+
+Each violation carries a penalty. Two critical violations = automatic 0 for the day. The scoring system is designed to be harsh because the stakes in real trading are even harsher.
+
+The entire auditor is about 300 lines of Python — a testament to how powerful the standard library really is.
+
+If you haven't explored Python's ast module, I highly recommend it. It's one of those tools that changes how you think about code analysis and meta-programming.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Python #AST #CodeQuality #StaticAnalysis #SoftwareEngineering #MetaProgramming</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 5: Architecture                                        -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post5" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-insight">🏗️ architecture</span>
+      </div>
+      <div class="post-content">
+        <p><strong>The architecture of a single-process trading simulator</strong></p>
+        <p>
+          One of the most interesting engineering challenges in NovaCap was getting a complete trading simulation — exchange, dashboard, CLI, ledger, and evaluation engine — to run inside a <em>single Python process</em>.
+        </p>
+        <p>Here's how it breaks down at runtime:</p>
+        <p>
+          <code>arbitrage_academy.py</code> (3,961 lines) starts one <code>threading.Thread</code> for the mock exchange HTTP server on port 8080, and another for the web dashboard on port 8081. Meanwhile, the main thread runs the <code>cmd.Cmd</code> CLI loop. All three communicate through a shared <code>SimulationState</code> object protected by locks.
+        </p>
+        <p>
+          <strong>Thread 1 — Mock Exchange:</strong> Serves REST endpoints for order books, tickers, and trade execution. Maintains synthetic market state with configurable volatility.
+        </p>
+        <p>
+          <strong>Thread 2 — Web Dashboard:</strong> Serves a dark-themed SPA-style UI with live ticker, code editor, evaluation history, and ledger explorer.
+        </p>
+        <p>
+          <strong>Main Thread — CLI:</strong> The Principal Strategist persona. Accepts 10 commands and orchestrates the full training workflow.
+        </p>
+        <p>
+          <strong>Persistent Layer — SQLite:</strong> Double-entry ledger with 9 standard accounts. Full transaction log. Balances must always reconcile.
+        </p>
+        <p>
+          No Docker. No microservices. No dependency injection framework. Just threads, locks, and careful state management.
+        </p>
+        <p>
+          Sometimes the simplest architecture is the right one.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#SystemArchitecture</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#SoftwareDesign</span>
+          <span class="hashtag">#Threading</span>
+          <span class="hashtag">#BackendArchitecture</span>
+          <span class="hashtag">#Tech</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post5-text')">📋 Copy Post</button>
+        <span class="post-tag">architecture</span>
+        <span class="post-tag">design</span>
+        <span class="post-tag">threading</span>
+        <span class="post-engagements">🏛️ Best for: Architecture Thursday</span>
+      </div>
+    </div>
+    <textarea id="post5-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+The architecture of a single-process trading simulator
+
+One of the most interesting engineering challenges in NovaCap was getting a complete trading simulation — exchange, dashboard, CLI, ledger, and evaluation engine — to run inside a single Python process.
+
+Here's how it breaks down at runtime:
+
+arbitrage_academy.py (3,961 lines) starts one threading.Thread for the mock exchange HTTP server on port 8080, and another for the web dashboard on port 8081. Meanwhile, the main thread runs the cmd.Cmd CLI loop. All three communicate through a shared SimulationState object protected by locks.
+
+Thread 1 — Mock Exchange: Serves REST endpoints for order books, tickers, and trade execution. Maintains synthetic market state with configurable volatility.
+
+Thread 2 — Web Dashboard: Serves a dark-themed SPA-style UI with live ticker, code editor, evaluation history, and ledger explorer.
+
+Main Thread — CLI: The Principal Strategist persona. Accepts 10 commands and orchestrates the full training workflow.
+
+Persistent Layer — SQLite: Double-entry ledger with 9 standard accounts. Full transaction log. Balances must always reconcile.
+
+No Docker. No microservices. No dependency injection framework. Just threads, locks, and careful state management.
+
+Sometimes the simplest architecture is the right one.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#SystemArchitecture #Python #SoftwareDesign #Threading #BackendArchitecture #Tech</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 6: Performance & Zero Deps                             -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post6" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-tech">⚡ performance</span>
+      </div>
+      <div class="post-content">
+        <p><strong>Zero dependencies means zero deployment friction.</strong></p>
+        <p>
+          I keep seeing projects with 500+ npm packages or 50+ pip dependencies for relatively simple applications. Each one is a liability: a potential security vulnerability, a license conflict, a future maintenance headache.
+        </p>
+        <p>
+          For NovaCap, I made a deliberate decision: <strong>no external dependencies</strong>.
+        </p>
+        <p>
+          This has concrete benefits:
+        </p>
+        <ul>
+          <li><strong>Clone and run in 5 seconds.</strong> No <code>pip install</code>. No failed builds. No version conflicts.</li>
+          <li><strong>No attack surface.</strong> Standard library modules are maintained by the PSF and are part of every Python installation.</li>
+          <li><strong>Deterministic behavior.</strong> Your code runs identically on every machine because there's no dependency version to drift.</li>
+          <li><strong>Forced simplicity.</strong> When you can't reach for NumPy, you write your own moving average. And you understand it deeply.</li>
+        </ul>
+        <p>
+          The entire simulator is about 8,000 lines across three files. The core engine (<code>arbitrage_academy.py</code>) is a single file of 3,961 lines — all standard library.
+        </p>
+        <p>
+          Before you add that next dependency to your project, ask yourself: <em>can I do this with what I already have?</em>
+        </p>
+        <p>
+          You might surprise yourself with what the standard library can do.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#Minimalism</span>
+          <span class="hashtag">#CodeQuality</span>
+          <span class="hashtag">#DevOps</span>
+          <span class="hashtag">#Security</span>
+          <span class="hashtag">#TechPhilosophy</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post6-text')">📋 Copy Post</button>
+        <span class="post-tag">minimalism</span>
+        <span class="post-tag">security</span>
+        <span class="post-tag">engineering</span>
+        <span class="post-engagements">🧘 Best for: Monday Minimalism</span>
+      </div>
+    </div>
+    <textarea id="post6-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+Zero dependencies means zero deployment friction.
+
+I keep seeing projects with 500+ npm packages or 50+ pip dependencies for relatively simple applications. Each one is a liability: a potential security vulnerability, a license conflict, a future maintenance headache.
+
+For NovaCap, I made a deliberate decision: no external dependencies.
+
+This has concrete benefits:
+
+• Clone and run in 5 seconds. No pip install. No failed builds. No version conflicts.
+• No attack surface. Standard library modules are maintained by the PSF and are part of every Python installation.
+• Deterministic behavior. Your code runs identically on every machine because there's no dependency version to drift.
+• Forced simplicity. When you can't reach for NumPy, you write your own moving average. And you understand it deeply.
+
+The entire simulator is about 8,000 lines across three files. The core engine (arbitrage_academy.py) is a single file of 3,961 lines — all standard library.
+
+Before you add that next dependency to your project, ask yourself: can I do this with what I already have?
+
+You might surprise yourself with what the standard library can do.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Python #Minimalism #CodeQuality #DevOps #Security #TechPhilosophy</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 7: Double-Entry Ledger                                 -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post7" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-insight">📊 accounting</span>
+      </div>
+      <div class="post-content">
+        <p><strong>If your debits don't equal your credits, you fail the day.</strong></p>
+        <p>
+          In NovaCap's training simulator, every trade your algorithm makes is logged to a double-entry SQLite ledger. If your positions cause an imbalance — even by a single satoshi — the evaluation engine flags it and deducts 30 points from your score.
+        </p>
+        <p>
+          This is not arbitrary cruelty. This is how real financial systems work.
+        </p>
+        <p>
+          The ledger uses 9 standard accounts:
+        </p>
+        <ul>
+          <li><strong>Asset accounts:</strong> Cash, BTC, ETH, USDT</li>
+          <li><strong>Liability accounts:</strong> Margin, Pending Settlements</li>
+          <li><strong>Equity:</strong> Opening Balance, Retained Earnings</li>
+          <li><strong>Income/Expense:</strong> Realized P&amp;L, Unrealized P&amp;L</li>
+        </ul>
+        <p>
+          Every transaction records: timestamp, symbol, quantity, price, debit account, credit account, and a unique audit ID. The entire history is queryable via the web dashboard.
+        </p>
+        <p>
+          Why go this far for a training tool? Because financial software has no margin for error. Learning to think in terms of accounting integrity — debits always equal credits, every position is traceable — is one of the most important skills for any quantitative developer.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Accounting</span>
+          <span class="hashtag">#DoubleEntry</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#SQLite</span>
+          <span class="hashtag">#FinTech</span>
+          <span class="hashtag">#DataIntegrity</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post7-text')">📋 Copy Post</button>
+        <span class="post-tag">accounting</span>
+        <span class="post-tag">sqlite</span>
+        <span class="post-tag">finance</span>
+        <span class="post-engagements">📊 Best for: Finance Friday</span>
+      </div>
+    </div>
+    <textarea id="post7-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+If your debits don't equal your credits, you fail the day.
+
+In NovaCap's training simulator, every trade your algorithm makes is logged to a double-entry SQLite ledger. If your positions cause an imbalance — even by a single satoshi — the evaluation engine flags it and deducts 30 points from your score.
+
+This is not arbitrary cruelty. This is how real financial systems work.
+
+The ledger uses 9 standard accounts:
+
+• Asset accounts: Cash, BTC, ETH, USDT
+• Liability accounts: Margin, Pending Settlements
+• Equity: Opening Balance, Retained Earnings
+• Income/Expense: Realized P&L, Unrealized P&L
+
+Every transaction records: timestamp, symbol, quantity, price, debit account, credit account, and a unique audit ID. The entire history is queryable via the web dashboard.
+
+Why go this far for a training tool? Because financial software has no margin for error. Learning to think in terms of accounting integrity — debits always equal credits, every position is traceable — is one of the most important skills for any quantitative developer.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Accounting #DoubleEntry #Python #SQLite #FinTech #DataIntegrity</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 8: Open Source Philosophy                              -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post8" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-story">🌍 open source</span>
+      </div>
+      <div class="post-content">
+        <p><strong>Why I open-sourced a trading simulator that took months to build</strong></p>
+        <p>
+          Could I have packaged this as a paid course? Probably. Could I have put it behind a paywall? Definitely.
+        </p>
+        <p>
+          But I chose to put it on GitHub as an open-source project. Here's why:
+        </p>
+        <ol>
+          <li><strong>Learning should be accessible.</strong> The barrier to entry for quantitative finance is already high — expensive degrees, proprietary terminals, institutional gatekeeping. This is one small step toward lowering that wall.</li>
+          <li><strong>Feedback makes everything better.</strong> My implementation of the mock exchange is decent. But I know it could be better — and the best way to improve is to put it in front of people who know more than I do.</li>
+          <li><strong>Portfolio > Resume.</strong> When someone asks me what I can do, I'd rather show them 8,000 lines of working Python than a bullet point on a CV.</li>
+          <li><strong>It's the right thing to do.</strong> I learned Python from open-source projects. Giving back is not charity — it's reciprocity.</li>
+        </ol>
+        <p>
+          The repo includes: a full 90-day training program document, a prep guide for Python and finance fundamentals, a product landing page, and it's all MIT licensed.
+        </p>
+        <p>
+          Whether you're a Python developer exploring finance or a quant looking for a sandbox — it's free, it runs immediately, and it demands everything from you.
+        </p>
+        <p>
+          ⭐ If the project resonates with you, a star on GitHub goes a long way.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#OpenSource</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#QuantitativeFinance</span>
+          <span class="hashtag">#Education</span>
+          <span class="hashtag">#Community</span>
+          <span class="hashtag">#GivingBack</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post8-text')">📋 Copy Post</button>
+        <span class="post-tag">opensource</span>
+        <span class="post-tag">community</span>
+        <span class="post-tag">philosophy</span>
+        <span class="post-engagements">🌍 Best for: Community Sunday</span>
+      </div>
+    </div>
+    <textarea id="post8-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+Why I open-sourced a trading simulator that took months to build
+
+Could I have packaged this as a paid course? Probably. Could I have put it behind a paywall? Definitely.
+
+But I chose to put it on GitHub as an open-source project. Here's why:
+
+1. Learning should be accessible. The barrier to entry for quantitative finance is already high — expensive degrees, proprietary terminals, institutional gatekeeping. This is one small step toward lowering that wall.
+
+2. Feedback makes everything better. My implementation of the mock exchange is decent. But I know it could be better — and the best way to improve is to put it in front of people who know more than I do.
+
+3. Portfolio > Resume. When someone asks me what I can do, I'd rather show them 8,000 lines of working Python than a bullet point on a CV.
+
+4. It's the right thing to do. I learned Python from open-source projects. Giving back is not charity — it's reciprocity.
+
+The repo includes: a full 90-day training program document, a prep guide for Python and finance fundamentals, a product landing page, and it's all MIT licensed.
+
+Whether you're a Python developer exploring finance or a quant looking for a sandbox — it's free, it runs immediately, and it demands everything from you.
+
+⭐ If the project resonates with you, a star on GitHub goes a long way.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#OpenSource #Python #QuantitativeFinance #Education #Community #GivingBack</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 9: Personal / Building Story                            -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post9" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-story">📝 personal</span>
+      </div>
+      <div class="post-content">
+        <p><strong>I built a trading simulator. Here's what I learned along the way.</strong></p>
+        <p>
+          A few months ago, I set out to build something that combined two things I'm passionate about: Python and financial markets. I had no grand plan — just a notebook full of ideas and a growing frustration with abstract tutorials that never simulate the chaos of real systems.
+        </p>
+        <p>
+          What emerged is <strong>NovaCap · Principal Strategist</strong>, but the real story is less about the code and more about the lessons:
+        </p>
+        <p>
+          <strong>1. Building is the best form of learning.</strong> I learned more about Python's threading model from debugging race conditions in the mock exchange than from any tutorial.
+        </p>
+        <p>
+          <strong>2. Constraints breed creativity.</strong> The "no external dependencies" rule forced me to write things I would have otherwise imported. And now I understand them deeply — from HTTP server internals to AST traversal.
+        </p>
+        <p>
+          <strong>3. Feedback loops matter.</strong> The simulator's ruthless scoring system (100/100 or you repeat the day) is a mirror of how I approach my own learning. Fast, honest, and uncompromising.
+        </p>
+        <p>
+          <strong>4. Small tools, big systems.</strong> 3,961 lines in a single file sounds intimidating. But every line is there for a reason. There's no dead code, no unused imports, no abstraction for the sake of abstraction.
+        </p>
+        <p>
+          If there's one thing I'd tell my past self: stop planning, start building. The architecture reveals itself as you go.
+        </p>
+        <p>
+          The code is on GitHub. I'd love for you to check it out.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#BuildingInPublic</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#IndieDev</span>
+          <span class="hashtag">#FinTech</span>
+          <span class="hashtag">#PersonalGrowth</span>
+          <span class="hashtag">#SoftwareEngineering</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post9-text')">📋 Copy Post</button>
+        <span class="post-tag">personal</span>
+        <span class="post-tag">story</span>
+        <span class="post-tag">reflection</span>
+        <span class="post-engagements">💬 Best for: Authentic Friday</span>
+      </div>
+    </div>
+    <textarea id="post9-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+I built a trading simulator. Here's what I learned along the way.
+
+A few months ago, I set out to build something that combined two things I'm passionate about: Python and financial markets. I had no grand plan — just a notebook full of ideas and a growing frustration with abstract tutorials that never simulate the chaos of real systems.
+
+What emerged is NovaCap · Principal Strategist, but the real story is less about the code and more about the lessons:
+
+1. Building is the best form of learning. I learned more about Python's threading model from debugging race conditions in the mock exchange than from any tutorial.
+
+2. Constraints breed creativity. The "no external dependencies" rule forced me to write things I would have otherwise imported. And now I understand them deeply — from HTTP server internals to AST traversal.
+
+3. Feedback loops matter. The simulator's ruthless scoring system (100/100 or you repeat the day) is a mirror of how I approach my own learning. Fast, honest, and uncompromising.
+
+4. Small tools, big systems. 3,961 lines in a single file sounds intimidating. But every line is there for a reason. There's no dead code, no unused imports, no abstraction for the sake of abstraction.
+
+If there's one thing I'd tell my past self: stop planning, start building. The architecture reveals itself as you go.
+
+The code is on GitHub. I'd love for you to check it out.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#BuildingInPublic #Python #IndieDev #FinTech #PersonalGrowth #SoftwareEngineering</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 10: 90-Day Curriculum Journey                          -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post10" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-milestone">🎯 curriculum</span>
+      </div>
+      <div class="post-content">
+        <p><strong>I designed a 90-day curriculum to turn Python developers into quantization strategists.</strong></p>
+        <p>
+          Here's how the three phases break down:
+        </p>
+        <p>
+          <strong>Phase 1 — Days 1–30: Data Ingestion &amp; Risk Math</strong><br />
+          Fetch order books from the mock exchange API. Calculate SMA, EMA, Bollinger Bands, and RSI from raw tick data. Log every position to a double-entry SQLite ledger. Pass AST audits for code quality. Build the foundation.
+        </p>
+        <p>
+          <strong>Phase 2 — Days 31–60: Arbitrage Logic</strong><br />
+          Cross-exchange spread detection. Triangular arbitrage cycles (BTC → ETH → USDT → BTC). Kelly Criterion position sizing. Latency simulation and slippage modeling. This is where the real strategy work begins.
+        </p>
+        <p>
+          <strong>Phase 3 — Days 61–90: Slippage &amp; SOCPA Compliance</strong><br />
+          SOCPA-compliant audit trails. IFRS 9 financial instrument reporting. VaR and CVaR stress testing. Production-grade trade reconciliation. Full compliance report generation.
+        </p>
+        <p>
+          Each day has a mission brief, a boilerplate solution template, and a hidden test suite. Each morning you start fresh. Each evening the evaluator scores you with brutal honesty.
+        </p>
+        <p>
+          Want to see what Day 1 looks like? Clone the repo and run:
+        </p>
+        <p>
+          <code style="display:inline-block;background:#1a1a2e;padding:8px 16px;border-radius:8px;border:1px solid #2d2d44;margin:4px 0;">python arbitrage_academy.py</code>
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#AlgorithmicTrading</span>
+          <span class="hashtag">#Education</span>
+          <span class="hashtag">#CurriculumDesign</span>
+          <span class="hashtag">#QuantitativeFinance</span>
+          <span class="hashtag">#90DayChallenge</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post10-text')">📋 Copy Post</button>
+        <span class="post-tag">curriculum</span>
+        <span class="post-tag">education</span>
+        <span class="post-tag">challenge</span>
+        <span class="post-engagements">🎯 Best for: Teaching Tuesday</span>
+      </div>
+    </div>
+    <textarea id="post10-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+I designed a 90-day curriculum to turn Python developers into quantitative strategists.
+
+Here's how the three phases break down:
+
+Phase 1 — Days 1–30: Data Ingestion & Risk Math
+Fetch order books from the mock exchange API. Calculate SMA, EMA, Bollinger Bands, and RSI from raw tick data. Log every position to a double-entry SQLite ledger. Pass AST audits for code quality. Build the foundation.
+
+Phase 2 — Days 31–60: Arbitrage Logic
+Cross-exchange spread detection. Triangular arbitrage cycles (BTC → ETH → USDT → BTC). Kelly Criterion position sizing. Latency simulation and slippage modeling. This is where the real strategy work begins.
+
+Phase 3 — Days 61–90: Slippage & SOCPA Compliance
+SOCPA-compliant audit trails. IFRS 9 financial instrument reporting. VaR and CVaR stress testing. Production-grade trade reconciliation. Full compliance report generation.
+
+Each day has a mission brief, a boilerplate solution template, and a hidden test suite. Each morning you start fresh. Each evening the evaluator scores you with brutal honesty.
+
+Want to see what Day 1 looks like? Clone the repo and run:
+
+python arbitrage_academy.py
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Python #AlgorithmicTrading #Education #CurriculumDesign #QuantitativeFinance #90DayChallenge</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 11: Building in Public Thread                          -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post11" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-story">🧵 building in public</span>
+      </div>
+      <div class="post-content">
+        <p><strong>I'm building a quantitative training platform in public.</strong></p>
+        <p>
+          Here's a behind-the-scenes look at the tech stack and decisions that shaped NovaCap:
+        </p>
+        <p>
+          <strong>The stack:</strong> Python 3.11+ (standard library only)<br />
+          <strong>The constraint:</strong> Zero external dependencies<br />
+          <strong>The output:</strong> 3 files, ~8,000 lines, 3 concurrent servers
+        </p>
+        <p>
+          <strong>The hardest technical challenge:</strong> Thread safety between the CLI, the HTTP exchange server, and the web dashboard. Three threads sharing a common simulation state, each with different access patterns. One mutex to rule them all.
+        </p>
+        <p>
+          <strong>The design choice I'm most proud of:</strong> The AST auditor. The fact that your Python strategy code is parsed and analyzed before it executes — and that the auditor checks for genuinely important things like missing error handling and unsafe patterns — gives the simulation a level of rigor I haven't seen in other training tools.
+        </p>
+        <p>
+          <strong>What I'd do differently next time:</strong> More tests. The project grew organically, and test coverage is not where I want it to be. That's the next priority.
+        </p>
+        <p>
+          <strong>What I'd keep the same:</strong> The zero-dependency rule. It forced better design decisions than any framework ever could.
+        </p>
+        <p>
+          Building in public means sharing not just the successes but the honest reflections. This is mine.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#BuildingInPublic</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#IndieHacking</span>
+          <span class="hashtag">#TechStack</span>
+          <span class="hashtag">#SoftwareCraft</span>
+          <span class="hashtag">#QuantDev</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post11-text')">📋 Copy Post</button>
+        <span class="post-tag">building-in-public</span>
+        <span class="post-tag">reflection</span>
+        <span class="post-tag">transparency</span>
+        <span class="post-engagements">🧵 Best for: Sunday Reflection</span>
+      </div>
+    </div>
+    <textarea id="post11-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+I'm building a quantitative training platform in public.
+
+Here's a behind-the-scenes look at the tech stack and decisions that shaped NovaCap:
+
+The stack: Python 3.11+ (standard library only)
+The constraint: Zero external dependencies
+The output: 3 files, ~8,000 lines, 3 concurrent servers
+
+The hardest technical challenge: Thread safety between the CLI, the HTTP exchange server, and the web dashboard. Three threads sharing a common simulation state, each with different access patterns. One mutex to rule them all.
+
+The design choice I'm most proud of: The AST auditor. The fact that your Python strategy code is parsed and analyzed before it executes — and that the auditor checks for genuinely important things like missing error handling and unsafe patterns — gives the simulation a level of rigor I haven't seen in other training tools.
+
+What I'd do differently next time: More tests. The project grew organically, and test coverage is not where I want it to be. That's the next priority.
+
+What I'd keep the same: The zero-dependency rule. It forced better design decisions than any framework ever could.
+
+Building in public means sharing not just the successes but the honest reflections. This is mine.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#BuildingInPublic #Python #IndieHacking #TechStack #SoftwareCraft #QuantDev</textarea>
+
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <!-- POST 12: Scoring & Evaluation Deep-Dive                    -->
+    <!-- ──────────────────────────────────────────────────────────── -->
+    <div id="post12" class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">M</div>
+        <div class="post-author">
+          <h4>Mutima</h4>
+          <div class="handle">Principal Strategist · NovaCap Financial Technologies</div>
+        </div>
+        <span class="post-badge badge-insight">🎯 evaluation</span>
+      </div>
+      <div class="post-content">
+        <p><strong>How do you score a trading strategy when you don't have a crystal ball?</strong></p>
+        <p>
+          In NovaCap, the answer is: you don't score the strategy's P&amp;L. You score the <em>process</em>.
+        </p>
+        <p>
+          The End-of-Day evaluation pipeline runs three independent checks, each with a specific weight:
+        </p>
+        <p>
+          <strong>Stage 1 — AST Audit (max 40 points)</strong><br />
+          Your source code is parsed into an abstract syntax tree. The auditor walks the tree looking for 9 categories of violations. Critical issues (missing exception handling, unsafe eval calls) cost 40 points each. Warnings (excessive nesting, missing annotations) cost 10 each.
+        </p>
+        <p>
+          <strong>Stage 2 — Test Suite (max 30 points)</strong><br />
+          Each day comes with a hidden test suite. Your strategy code is executed against it. Every failing test costs 30 points.
+        </p>
+        <p>
+          <strong>Stage 3 — Ledger Integrity (max 30 points)</strong><br />
+          Your trading activity is loaded from SQLite. Every transaction is checked: debits = credits, no orphan entries, complete audit trail. Any imbalance costs 30 points.
+        </p>
+        <p>
+          <strong>Result: a score of 0–100.</strong><br />
+          Below 100? You don't advance. You refactor, you fix, you retry.
+        </p>
+        <p>
+          The philosophy: in real trading, you can't control market outcomes. But you <em>can</em> control code quality, test coverage, and accounting integrity. That's what NovaCap measures. And that's what matters.
+        </p>
+        <p>
+          <a class="repo-link" href="https://github.com/mutima89/NovaCap" target="_blank">🔗 github.com/mutima89/NovaCap</a>
+        </p>
+        <p>
+          <span class="hashtag">#Evaluation</span>
+          <span class="hashtag">#CodeQuality</span>
+          <span class="hashtag">#Python</span>
+          <span class="hashtag">#Testing</span>
+          <span class="hashtag">#Engineering</span>
+          <span class="hashtag">#Quant</span>
+        </p>
+      </div>
+      <div class="post-footer">
+        <button class="copy-btn" onclick="copyPost(this, 'post12-text')">📋 Copy Post</button>
+        <span class="post-tag">scoring</span>
+        <span class="post-tag">evaluation</span>
+        <span class="post-tag">testing</span>
+        <span class="post-engagements">🎯 Best for: Technical Wednesday</span>
+      </div>
+    </div>
+    <textarea id="post12-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
+How do you score a trading strategy when you don't have a crystal ball?
+
+In NovaCap, the answer is: you don't score the strategy's P&L. You score the process.
+
+The End-of-Day evaluation pipeline runs three independent checks, each with a specific weight:
+
+Stage 1 — AST Audit (max 40 points)
+Your source code is parsed into an abstract syntax tree. The auditor walks the tree looking for 9 categories of violations. Critical issues (missing exception handling, unsafe eval calls) cost 40 points each. Warnings (excessive nesting, missing annotations) cost 10 each.
+
+Stage 2 — Test Suite (max 30 points)
+Each day comes with a hidden test suite. Your strategy code is executed against it. Every failing test costs 30 points.
+
+Stage 3 — Ledger Integrity (max 30 points)
+Your trading activity is loaded from SQLite. Every transaction is checked: debits = credits, no orphan entries, complete audit trail. Any imbalance costs 30 points.
+
+Result: a score of 0–100.
+Below 100? You don't advance. You refactor, you fix, you retry.
+
+The philosophy: in real trading, you can't control market outcomes. But you can control code quality, test coverage, and accounting integrity. That's what NovaCap measures. And that's what matters.
+
+🔗 https://github.com/mutima89/NovaCap
+
+#Evaluation #CodeQuality #Python #Testing #Engineering #Quant</textarea>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- CONTENT CALENDAR                                                   -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="container" id="calendar">
+    <div class="section-header">
+      <h2>🗓️ 12-Week Content Calendar</h2>
+      <p>Suggested posting rhythm to build momentum over 3 months</p>
+    </div>
+    <div class="calendar-grid">
+      <div class="calendar-week week-launch">
+        <div class="week-label">Week 1 — Launch</div>
+        <div class="week-title">🚀 Post 1: Launch</div>
+        <div class="week-desc">Big announcement + what NovaCap does. Best time to publish: Monday morning.</div>
+      </div>
+      <div class="calendar-week week-tech">
+        <div class="week-label">Week 2 — Engineering</div>
+        <div class="week-title">🔧 Post 2: Zero Dependencies</div>
+        <div class="week-desc">Deep dive into why no external deps matters and what the stdlib delivered.</div>
+      </div>
+      <div class="calendar-week week-story">
+        <div class="week-label">Week 3 — Career</div>
+        <div class="week-title">📖 Post 3: Quant Developer</div>
+        <div class="week-desc">What it takes to become a quant developer. Career-focused, relatable.</div>
+      </div>
+      <div class="calendar-week week-tech">
+        <div class="week-label">Week 4 — Technical</div>
+        <div class="week-title">🔬 Post 4: AST Auditor</div>
+        <div class="week-desc">Deep technical dive into the AST module. Appeals to engineers.</div>
+      </div>
+      <div class="calendar-week week-insight">
+        <div class="week-label">Week 5 — Architecture</div>
+        <div class="week-title">🏗️ Post 5: Architecture</div>
+        <div class="week-desc">System design deep-dive. Threads, locks, and single-process design.</div>
+      </div>
+      <div class="calendar-week week-story">
+        <div class="week-label">Week 6 — Philosophy</div>
+        <div class="week-title">🧘 Post 6: Performance & Zero Deps</div>
+        <div class="week-desc">Minimalist engineering philosophy. Standalone post.</div>
+      </div>
+      <div class="calendar-week week-insight">
+        <div class="week-label">Week 7 — Finance</div>
+        <div class="week-title">📊 Post 7: Double-Entry Ledger</div>
+        <div class="week-desc">Accounting deep dive. Debits must always equal credits.</div>
+      </div>
+      <div class="calendar-week week-story">
+        <div class="week-label">Week 8 — Community</div>
+        <div class="week-title">🌍 Post 8: Open Source</div>
+        <div class="week-desc">Why open source matters. Community-building post.</div>
+      </div>
+      <div class="calendar-week week-story">
+        <div class="week-label">Week 9 — Personal</div>
+        <div class="week-title">📝 Post 9: Personal Story</div>
+        <div class="week-desc">Behind-the-scenes of building NovaCap. Authentic, vulnerable.</div>
+      </div>
+      <div class="calendar-week week-milestone">
+        <div class="week-label">Week 10 — Curriculum</div>
+        <div class="week-title">🎯 Post 10: 90-Day Journey</div>
+        <div class="week-desc">Curriculum breakdown. Appeals to learners and educators.</div>
+      </div>
+      <div class="calendar-week week-story">
+        <div class="week-label">Week 11 — In Public</div>
+        <div class="week-title">🧵 Post 11: Building in Public</div>
+        <div class="week-desc">Reflections on building in public. Honest, transparent.</div>
+      </div>
+      <div class="calendar-week week-insight">
+        <div class="week-label">Week 12 — Evaluation</div>
+        <div class="week-title">🎯 Post 12: Scoring System</div>
+        <div class="week-desc">How evaluation works. Three-stage pipeline deep dive. Strong closer.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TIPS                                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="container" id="tips">
+    <div class="section-header">
+      <h2>💡 LinkedIn Posting Tips</h2>
+      <p>Maximize reach and engagement on every post</p>
+    </div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="icon">🕐</div>
+        <h4>Best Time to Post</h4>
+        <p>Tuesday–Thursday, 8–10 AM or 12–1 PM in your target timezone. Avoid weekends for technical content unless it's a reflection/story post.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🏷️</div>
+        <h4>Hashtag Strategy</h4>
+        <p>Use 3–6 hashtags per post. Mix broad (#Python, #FinTech) with niche (#AlgorithmicTrading, #QuantDeveloper). Place at the end, not inline.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">📏</div>
+        <h4>Optimal Length</h4>
+        <p>1,000–1,600 characters (including spaces). LinkedIn's algorithm favors longer posts that keep readers on the platform — but break up paragraphs.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🎨</div>
+        <h4>Add an Image</h4>
+        <p>Posts with images get 2× more engagement. Screenshot the NovaCap dashboard, the CLI in action, or a code snippet from the AST auditor.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">💬</div>
+        <h4>End with a Question</h4>
+        <p>Drive comments by asking something specific. Examples: "What's your experience with Python's AST module?" or "Have you ever built a trading bot?"</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🔄</div>
+        <h4>Repurpose & Repeat</h4>
+        <p>The same content can be posted 2–3 times at different angles across weeks. Post 4 (AST deep-dive) can become a poll, a carousel, or a comment thread.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🔗</div>
+        <h4>Link Placement</h4>
+        <p>Put links in the comments OR in a repost. LinkedIn's algorithm de-prioritizes posts with external links in the main body. The repo link is included here for convenience — consider moving it to comments when publishing.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">📊</div>
+        <h4>Engage on Engagements</h4>
+        <p>Reply to every comment within the first 2 hours. The algorithm treats early engagement as a signal to show your post to more people.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- FOOTER                                                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <p>
+      <strong>NovaCap · Principal Strategist</strong> &mdash;
+      <a href="https://github.com/mutima89/NovaCap" target="_blank">github.com/mutima89/NovaCap</a>
+    </p>
+    <p style="margin-top: 4px;">
+      Built with Python standard library. Zero dependencies. Maximum rigor.
+    </p>
+    <p style="margin-top: 12px; font-size: 12px; color: #334155;">
+      Crafted for LinkedIn &mdash; &copy; 2026 Mutima / NovaCap Financial Technologies Ltd.
+    </p>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TOAST                                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="toast" class="toast">✓ Copied to clipboard</div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SCRIPTS                                                            -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <script>
+    function copyPost(btn, textareaId) {
+      const textarea = document.getElementById(textareaId);
+      const text = textarea.value;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showCopied(btn));
+      } else {
+        // Fallback for older browsers
+        textarea.style.position = 'fixed';
+        textarea.style.left = '0';
+        textarea.style.top = '0';
+        textarea.style.width = '1px';
+        textarea.style.height = '1px';
+        textarea.style.opacity = '1';
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          showCopied(btn);
+        } catch (e) {
+          alert('Copy failed. Please select the text manually.');
+        }
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        textarea.style.opacity = '0';
+      }
+    }
+
+    function showCopied(btn) {
+      btn.classList.add('copied');
+      const original = btn.textContent;
+      btn.textContent = '✅ Copied!';
+
+      const toast = document.getElementById('toast');
+      toast.textContent = '✓ Post copied to clipboard — ready for LinkedIn!';
+      toast.classList.add('visible');
+
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+        toast.classList.remove('visible');
+      }, 2200);
+    }
+  </script>
+</body>
+</html>

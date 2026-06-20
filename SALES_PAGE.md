@@ -66,16 +66,10 @@ Each day:
 
 ---
 
-## Pricing
+## License
 
-| Tier | Price | Best For |
-|------|-------|----------|
-| **Individual** | **$79** | Solo devs, students, self-learners |
-| **Professional** | **$249** | Freelancers, commercial use |
-| **Academy (30 seats)** | **$750** | Bootcamps, classrooms, training programs |
-| **Enterprise** | **$2,500+** | Firms, custom dev, white-label |
-
-**30-day money-back guarantee.** If it doesn't work for you, get a full refund.
+This project is **MIT licensed** — free to use, modify, and distribute.
+See [`EULA.md`](EULA.md) for the full license text.
 
 ---
 
@@ -89,19 +83,13 @@ It's challenging. Days 1–3 are accessible to intermediate Python devs. The dif
 ramps significantly. If you can write functions with type annotations and handle
 exceptions, you're ready.
 
-**"Can I see it running before I buy?"**
-The dashboard runs on `http://localhost:8081` — start it and see the live exchange,
-ticker feed, and ledger before writing a line of code.
-
-**"What if I get stuck?"**
-Individual license includes 30-day email support. Academy/Enterprise tiers include
-dedicated support SLA.
+**"Can I see it running?"**
+Absolutely. Clone the repo and run `python arbitrage_academy.py` — the dashboard
+appears on `http://localhost:8081` with a live exchange, ticker feed, and ledger.
 
 **"Is this financial advice?"**
 Absolutely not. All market data is synthetic. This is a code training simulator.
 
 ---
 
-**[Buy Now — $79 (Individual)]** | **[Buy Now — $249 (Professional)]**
-
-Enterprise inquiries: [enterprise@novacap-financial.com]
+Get started: **[github.com/mutima89/NovaCap](https://github.com/mutima89/NovaCap)**

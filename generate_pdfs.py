@@ -271,7 +271,7 @@ def build_index_html():
             "promo": "Product Landing Page",
             "product": "Product Documentation (README)",
             "sales-page": "Sales Page / Listing Copy",
-            "eula": "End-User License Agreement",
+            "eula": "MIT License",
             "training-program": "Training Program Syllabus (HTML)",
             "training-program-md": "Training Program Syllabus (Markdown)",
             "before-you-begin": "Before You Begin — Prep Guide",
@@ -481,7 +481,7 @@ def main():
             # Create title from filename
             title = output_name.replace(".pdf", "").replace("-", " ").title()
             if title == "Eula":
-                title = "End-User License Agreement (EULA)"
+                title = "MIT License"
 
             # Convert to dark-themed HTML
             html_content = md_to_html(md_content, title)

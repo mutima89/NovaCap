@@ -181,16 +181,11 @@ python arbitrage_academy.py
 
 ---
 
-## 📜 Licensing
+## 📜 License
 
-| Tier | Price | Audience |
-|------|-------|----------|
-| **Individual** | $79 | Single developer, personal use |
-| **Professional** | $249 | Freelancers, commercial use |
-| **Academy** | $750 | Classrooms, bootcamps (up to 30 seats) |
-| **Enterprise** | $2,500+ | Unlimited seats, custom modules, white-label |
+This project is **MIT licensed** — see [`EULA.md`](EULA.md) for the full text.
 
-See [EULA.md](EULA.md) for full terms.
+You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software under the MIT terms.
 
 ---
 
@@ -209,7 +204,7 @@ A: Days 1–3 are hand-crafted. Days 4–90 use procedural generation. You can m
 A: Yes. Tested on Python 3.8–3.13 on Windows, macOS, and Linux.
 
 **Q: What if I find a bug?**
-A: Individual license holders get 30 days of email support. Higher tiers include SLA-backed support.
+A: Open an issue on GitHub. The project is MIT licensed — community contributions and fixes are welcome.
 
 ---
 
