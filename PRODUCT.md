@@ -208,9 +208,11 @@ A: Open an issue on GitHub. The project is MIT licensed — community contributi
 
 ---
 
-## 🏢 About NovaCap Financial Technologies
+## 🧑‍💻 About This Project
 
-NovaCap Financial Technologies Ltd. is a simulated FinTech firm used for training environments. All trading data is synthetic. All standards referenced (CMA, SOCPA, IFRS) are real professional accounting frameworks used to structure realistic compliance scenarios.
+NovaCap is a **personal project** built at the intersection of Python engineering and quantitative finance. The "NovaCap Financial Technologies" name is part of the simulation's narrative — there's no company behind it, just a developer who wanted to build something challenging.
+
+All trading data is synthetic. All standards referenced (CMA, SOCPA, IFRS) are real professional accounting frameworks used to structure realistic compliance scenarios.
 
 ---
 
