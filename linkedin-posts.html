@@ -537,7 +537,10 @@
           For the past several months, I've been building something that sits at the intersection of two worlds I care deeply about: <strong>quantitative finance</strong> and <strong>Python engineering</strong>.
         </p>
         <p>
-          Today I'm releasing <strong>NovaCap · Principal Strategist</strong> — a 90-day algorithmic trading training simulator that I built entirely with Python's standard library. Zero external dependencies. No pip install. No configuration.
+          Today I'm releasing <strong>NovaCap · Principal Strategist</strong> — a 90-day algorithmic trading training simulator built with Python's standard library. Zero external dependencies. No pip install. No configuration.
+        </p>
+        <p>
+          This is a personal project brought to life with significant AI assistance — think of it as pair programming with a co-pilot that never sleeps. Every component, from the mock exchange to the AST code auditor, was built iteratively with AI support.
         </p>
         <p>
           Here's what it does in one sentence: <em>You write trading strategies against a live mock exchange, pass rigorous AST code audits, and get scored 0–100 every day. Score 100 or you don't advance.</em>
@@ -582,7 +585,9 @@
     <textarea id="post1-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
 For the past several months, I've been building something that sits at the intersection of two worlds I care deeply about: quantitative finance and Python engineering.
 
-Today I'm releasing NovaCap · Principal Strategist — a 90-day algorithmic trading training simulator that I built entirely with Python's standard library. Zero external dependencies. No pip install. No configuration.
+Today I'm releasing NovaCap · Principal Strategist — a 90-day algorithmic trading training simulator built with Python's standard library. Zero external dependencies. No pip install. No configuration.
+
+This is a personal project brought to life with significant AI assistance — think of it as pair programming with a co-pilot that never sleeps. Every component, from the mock exchange to the AST code auditor, was built iteratively with AI support.
 
 Here's what it does in one sentence: You write trading strategies against a live mock exchange, pass rigorous AST code audits, and get scored 0–100 every day. Score 100 or you don't advance.
 
@@ -621,6 +626,9 @@ The repository is public. I'd love to hear your thoughts, feedback, and ideas.
         <p><strong>What can you build with zero dependencies?</strong></p>
         <p>
           I challenged myself to build a complete algorithmic trading training simulator using <em>nothing</em> but Python's standard library. No FastAPI. No Flask. No NumPy. No Pandas. Not even a requirements.txt file.
+        </p>
+        <p>
+          Full disclosure: this is a personal project built with AI as my pair programmer. AI helped write, refactor, and debug large portions of the code — I provided the direction, the architecture decisions, and the domain knowledge.
         </p>
         <p>
           The result is <strong>NovaCap · Principal Strategist</strong> — and here's what Python's standard library alone delivered:
@@ -664,6 +672,8 @@ What can you build with zero dependencies?
 
 I challenged myself to build a complete algorithmic trading training simulator using nothing but Python's standard library. No FastAPI. No Flask. No NumPy. No Pandas. Not even a requirements.txt file.
 
+Full disclosure: this is a personal project built with AI as my pair programmer. AI helped write, refactor, and debug large portions of the code — I provided the direction, the architecture decisions, and the domain knowledge.
+
 The result is NovaCap · Principal Strategist — and here's what Python's standard library alone delivered:
 
 • http.server + socketserver → A threaded REST mock exchange with live order books
@@ -697,6 +707,9 @@ I think there's something poetic about building complex systems with simple tool
         <p><strong>What does it actually take to become a quantitative developer?</strong></p>
         <p>
           I've spent the last year exploring this question — not through courses or certifications, but by building.
+        </p>
+        <p>
+          Full transparency: NovaCap is a personal project, and I built it with heavy AI assistance. AI helped generate code, debug issues, and refine the architecture — but every design decision, every domain choice, and the entire 90-day curriculum structure came from me. AI was my tool, not my brain.
         </p>
         <p>
           The typical advice is: learn Python, learn statistics, read Hull's "Options, Futures, and Other Derivatives." All good advice. But there's a gap between knowing the theory and <em>feeling</em> what happens when your algorithm places a trade, the exchange fills it at a different price than expected, and your P&amp;L suddenly doesn't balance.
@@ -749,6 +762,8 @@ What does it actually take to become a quantitative developer?
 
 I've spent the last year exploring this question — not through courses or certifications, but by building.
 
+Full transparency: NovaCap is a personal project, and I built it with heavy AI assistance. AI helped generate code, debug issues, and refine the architecture — but every design decision, every domain choice, and the entire 90-day curriculum structure came from me. AI was my tool, not my brain.
+
 The typical advice is: learn Python, learn statistics, read Hull's "Options, Futures, and Other Derivatives." All good advice. But there's a gap between knowing the theory and feeling what happens when your algorithm places a trade, the exchange fills it at a different price than expected, and your P&L suddenly doesn't balance.
 
 That gap is what NovaCap · Principal Strategist was built to bridge.
@@ -789,6 +804,9 @@ It's open source. Fork it, run it, break it, learn from it.
         </p>
         <p>
           Python's <code>ast</code> module gives you the ability to walk through any Python source file's syntax tree — and with that, you can enforce code quality rules automatically.
+        </p>
+        <p>
+          This entire project is a personal effort built with AI assistance. The AST auditor itself was designed by me but implemented collaboratively with AI — I defined the 9 check categories and violation rules, AI helped write the tree-walking logic.
         </p>
         <p>My AST auditor checks for 9 violation categories:</p>
         <ul>
@@ -833,6 +851,8 @@ In NovaCap, every piece of strategy code that a trainee writes gets parsed and i
 
 Python's ast module gives you the ability to walk through any Python source file's syntax tree — and with that, you can enforce code quality rules automatically.
 
+This entire project is a personal effort built with AI assistance. The AST auditor itself was designed by me but implemented collaboratively with AI — I defined the 9 check categories and violation rules, AI helped write the tree-walking logic.
+
 My AST auditor checks for 9 violation categories:
 
 • Critical: Missing error handling, eval()/exec() calls, mutable default arguments
@@ -866,6 +886,9 @@ If you haven't explored Python's ast module, I highly recommend it. It's one of 
         <p><strong>The architecture of a single-process trading simulator</strong></p>
         <p>
           One of the most interesting engineering challenges in NovaCap was getting a complete trading simulation — exchange, dashboard, CLI, ledger, and evaluation engine — to run inside a <em>single Python process</em>.
+        </p>
+        <p>
+          I'll be straight with you: this is a personal project built with AI assistance. AI helped with the boilerplate, the threading patterns, and the debugging. But the architecture — the decision to keep it single-process, the three-thread design, the shared state model — those were mine.
         </p>
         <p>Here's how it breaks down at runtime:</p>
         <p>
@@ -914,6 +937,8 @@ The architecture of a single-process trading simulator
 
 One of the most interesting engineering challenges in NovaCap was getting a complete trading simulation — exchange, dashboard, CLI, ledger, and evaluation engine — to run inside a single Python process.
 
+I'll be straight with you: this is a personal project built with AI assistance. AI helped with the boilerplate, the threading patterns, and the debugging. But the architecture — the decision to keep it single-process, the three-thread design, the shared state model — those were mine.
+
 Here's how it breaks down at runtime:
 
 arbitrage_academy.py (3,961 lines) starts one threading.Thread for the mock exchange HTTP server on port 8080, and another for the web dashboard on port 8081. Meanwhile, the main thread runs the cmd.Cmd CLI loop. All three communicate through a shared SimulationState object protected by locks.
@@ -953,6 +978,9 @@ Sometimes the simplest architecture is the right one.
         </p>
         <p>
           For NovaCap, I made a deliberate decision: <strong>no external dependencies</strong>.
+        </p>
+        <p>
+          Full honesty: this is a personal project built with AI assistance. The zero-dependency rule was mine — AI helped implement everything within that constraint. I'd say roughly 60% of the code was written collaboratively with AI, 40% I wrote and refined myself.
         </p>
         <p>
           This has concrete benefits:
@@ -999,6 +1027,8 @@ I keep seeing projects with 500+ npm packages or 50+ pip dependencies for relati
 
 For NovaCap, I made a deliberate decision: no external dependencies.
 
+Full honesty: this is a personal project built with AI assistance. The zero-dependency rule was mine — AI helped implement everything within that constraint. I'd say roughly 60% of the code was written collaboratively with AI, 40% I wrote and refined myself.
+
 This has concrete benefits:
 
 • Clone and run in 5 seconds. No pip install. No failed builds. No version conflicts.
@@ -1032,6 +1062,9 @@ You might surprise yourself with what the standard library can do.
         <p><strong>If your debits don't equal your credits, you fail the day.</strong></p>
         <p>
           In NovaCap's training simulator, every trade your algorithm makes is logged to a double-entry SQLite ledger. If your positions cause an imbalance — even by a single satoshi — the evaluation engine flags it and deducts 30 points from your score.
+        </p>
+        <p>
+          NovaCap is a personal project built with AI assistance. The ledger engine design — the 9 accounts, the double-entry logic, the audit trail schema — came from my understanding of accounting. AI helped me write the SQL, the balance reconciliation queries, and the transaction logging code.
         </p>
         <p>
           This is not arbitrary cruelty. This is how real financial systems work.
@@ -1076,6 +1109,8 @@ If your debits don't equal your credits, you fail the day.
 
 In NovaCap's training simulator, every trade your algorithm makes is logged to a double-entry SQLite ledger. If your positions cause an imbalance — even by a single satoshi — the evaluation engine flags it and deducts 30 points from your score.
 
+NovaCap is a personal project built with AI assistance. The ledger engine design — the 9 accounts, the double-entry logic, the audit trail schema — came from my understanding of accounting. AI helped me write the SQL, the balance reconciliation queries, and the transaction logging code.
+
 This is not arbitrary cruelty. This is how real financial systems work.
 
 The ledger uses 9 standard accounts:
@@ -1109,6 +1144,9 @@ Why go this far for a training tool? Because financial software has no margin fo
         <p><strong>Why I open-sourced a trading simulator that took months to build</strong></p>
         <p>
           Could I have packaged this as a paid course? Probably. Could I have put it behind a paywall? Definitely.
+        </p>
+        <p>
+          Also worth being transparent: this is a personal project built with AI assistance. I'm not a seasoned quant dev or a company — I'm a developer who used every tool available (including AI) to build something ambitious and put it out there for free.
         </p>
         <p>
           But I chose to put it on GitHub as an open-source project. Here's why:
@@ -1152,6 +1190,8 @@ Why go this far for a training tool? Because financial software has no margin fo
 Why I open-sourced a trading simulator that took months to build
 
 Could I have packaged this as a paid course? Probably. Could I have put it behind a paywall? Definitely.
+
+Also worth being transparent: this is a personal project built with AI assistance. I'm not a seasoned quant dev or a company — I'm a developer who used every tool available (including AI) to build something ambitious and put it out there for free.
 
 But I chose to put it on GitHub as an open-source project. Here's why:
 
@@ -1206,6 +1246,9 @@ Whether you're a Python developer exploring finance or a quant looking for a san
           <strong>4. Small tools, big systems.</strong> 3,961 lines in a single file sounds intimidating. But every line is there for a reason. There's no dead code, no unused imports, no abstraction for the sake of abstraction.
         </p>
         <p>
+          <strong>5. AI is an incredible pair programmer — if you drive.</strong> I built this with heavy AI assistance. The lessons I learned came from directing AI, reviewing its output, debugging the edge cases it missed, and making the architecture decisions it couldn't make. AI amplified my ability, but it didn't replace my judgment.
+        </p>
+        <p>
           If there's one thing I'd tell my past self: stop planning, start building. The architecture reveals itself as you go.
         </p>
         <p>
@@ -1246,6 +1289,8 @@ What emerged is NovaCap · Principal Strategist, but the real story is less abou
 
 4. Small tools, big systems. 3,961 lines in a single file sounds intimidating. But every line is there for a reason. There's no dead code, no unused imports, no abstraction for the sake of abstraction.
 
+5. AI is an incredible pair programmer — if you drive. I built this with heavy AI assistance. The lessons I learned came from directing AI, reviewing its output, debugging the edge cases it missed, and making the architecture decisions it couldn't make. AI amplified my ability, but it didn't replace my judgment.
+
 If there's one thing I'd tell my past self: stop planning, start building. The architecture reveals itself as you go.
 
 The code is on GitHub. I'd love for you to check it out.
@@ -1268,6 +1313,9 @@ The code is on GitHub. I'd love for you to check it out.
       </div>
       <div class="post-content">
         <p><strong>I designed a 90-day curriculum to turn Python developers into quantization strategists.</strong></p>
+        <p>
+          A note before I dive in: this whole project is a personal effort built with AI assistance. The curriculum structure — the three phases, the exercise design, the progression curve — those came from my understanding of what a quant needs to learn. AI helped me generate the day-by-day content, the boilerplate templates, and the test suites.
+        </p>
         <p>
           Here's how the three phases break down:
         </p>
@@ -1315,6 +1363,8 @@ The code is on GitHub. I'd love for you to check it out.
     <textarea id="post10-text" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;" readonly>
 I designed a 90-day curriculum to turn Python developers into quantitative strategists.
 
+A note before I dive in: this whole project is a personal effort built with AI assistance. The curriculum structure — the three phases, the exercise design, the progression curve — those came from my understanding of what a quant needs to learn. AI helped me generate the day-by-day content, the boilerplate templates, and the test suites.
+
 Here's how the three phases break down:
 
 Phase 1 — Days 1–30: Data Ingestion & Risk Math
@@ -1357,6 +1407,9 @@ python arbitrage_academy.py
           <strong>The stack:</strong> Python 3.11+ (standard library only)<br />
           <strong>The constraint:</strong> Zero external dependencies<br />
           <strong>The output:</strong> 3 files, ~8,000 lines, 3 concurrent servers
+        </p>
+        <p>
+          <strong>The elephant in the room:</strong> Yes, AI helped build this. NovaCap is a personal project and I used AI as my pair programmer throughout. Every line was either written by AI at my direction, reviewed and refined by me, or written by me and debugged with AI. I think transparency about AI usage is part of building in public.
         </p>
         <p>
           <strong>The hardest technical challenge:</strong> Thread safety between the CLI, the HTTP exchange server, and the web dashboard. Three threads sharing a common simulation state, each with different access patterns. One mutex to rule them all.
@@ -1402,6 +1455,8 @@ The stack: Python 3.11+ (standard library only)
 The constraint: Zero external dependencies
 The output: 3 files, ~8,000 lines, 3 concurrent servers
 
+The elephant in the room: Yes, AI helped build this. NovaCap is a personal project and I used AI as my pair programmer throughout. Every line was either written by AI at my direction, reviewed and refined by me, or written by me and debugged with AI. I think transparency about AI usage is part of building in public.
+
 The hardest technical challenge: Thread safety between the CLI, the HTTP exchange server, and the web dashboard. Three threads sharing a common simulation state, each with different access patterns. One mutex to rule them all.
 
 The design choice I'm most proud of: The AST auditor. The fact that your Python strategy code is parsed and analyzed before it executes — and that the auditor checks for genuinely important things like missing error handling and unsafe patterns — gives the simulation a level of rigor I haven't seen in other training tools.
@@ -1432,6 +1487,9 @@ Building in public means sharing not just the successes but the honest reflectio
         <p><strong>How do you score a trading strategy when you don't have a crystal ball?</strong></p>
         <p>
           In NovaCap, the answer is: you don't score the strategy's P&amp;L. You score the <em>process</em>.
+        </p>
+        <p>
+          Quick context: NovaCap is a personal project built with AI assistance. I designed the three-stage evaluation philosophy (AST → Tests → Ledger), and AI helped implement the pipeline. The scoring weights and violation categories were my call.
         </p>
         <p>
           The End-of-Day evaluation pipeline runs three independent checks, each with a specific weight:
@@ -1479,6 +1537,8 @@ Building in public means sharing not just the successes but the honest reflectio
 How do you score a trading strategy when you don't have a crystal ball?
 
 In NovaCap, the answer is: you don't score the strategy's P&L. You score the process.
+
+Quick context: NovaCap is a personal project built with AI assistance. I designed the three-stage evaluation philosophy (AST → Tests → Ledger), and AI helped implement the pipeline. The scoring weights and violation categories were my call.
 
 The End-of-Day evaluation pipeline runs three independent checks, each with a specific weight:
 
@@ -1617,6 +1677,11 @@ The philosophy: in real trading, you can't control market outcomes. But you can 
         <div class="icon">🔗</div>
         <h4>Link Placement</h4>
         <p>Put links in the comments OR in a repost. LinkedIn's algorithm de-prioritizes posts with external links in the main body. The repo link is included here for convenience — consider moving it to comments when publishing.</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🤖</div>
+        <h4>Own Your AI Usage</h4>
+        <p>LinkedIn respects transparency. If someone asks "did AI write this?" — answer honestly. These posts already disclose AI assistance naturally. Being upfront builds more trust than pretending otherwise.</p>
       </div>
       <div class="tip-card">
         <div class="icon">📊</div>
