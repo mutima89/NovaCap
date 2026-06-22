@@ -3166,7 +3166,8 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         day = self.state.current_day
 
         if not self.day_workspace_dir:
-            print(f"  {c(Color.ERROR, 'No workspace for today. Type \"start\" first.')}")
+            eod_msg = 'No workspace for today. Type "start" first.'
+            print(f"  {c(Color.ERROR, eod_msg)}")
             return
 
         print()
@@ -3210,14 +3211,16 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         # If passed, offer to advance
         if result["passed"]:
             if self.state.current_day < 90:
-                print(f"  {c(Color.BRIGHT_GREEN, 'Type \"advance\" to proceed to Day ' + str(self.state.current_day + 1) + '.')}")
+                advance_msg = 'Type "advance" to proceed to Day ' + str(self.state.current_day + 1) + '.'
+                print(f"  {c(Color.BRIGHT_GREEN, advance_msg)}")
             else:
                 print(f"  {c(Color.BRIGHT_GREEN, 'ALL 90 DAYS COMPLETE.')}")
                 print(f"  {c(Color.BRIGHT_GREEN, 'You have completed the NovaCap Arbitrage Protocol.')}")
                 print(f"  {muted('Your performance record has been saved.')}")
         else:
             print(f"  {c(Color.BRIGHT_RED, 'You must resolve all violations and score 100 before advancing.')}")
-            print(f"  {c(Color.BRIGHT_RED, 'Type \"start\" to retry Day ' + str(day) + '.')}")
+            retry_msg = 'Type "start" to retry Day ' + str(day) + '.'
+            print(f"  {c(Color.BRIGHT_RED, retry_msg)}")
 
         # Close ledger
         self.ledger.close()
@@ -3229,12 +3232,14 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         day = self.state.current_day
 
         if day > 90:
-            print(f"  {c(Color.BRIGHT_GREEN, 'All 90 days completed. Type \"status\" to see your record.')}")
+            all_done_msg = 'All 90 days completed. Type "status" to see your record.'
+            print(f"  {c(Color.BRIGHT_GREEN, all_done_msg)}")
             return
 
         # If already passed this day and want to restart
         if self.state.can_advance() and day < 90:
-            print(f"  {warn('Day ' + str(day) + ' already passed. Type \"advance\" to proceed.')}")
+            already_msg = 'Day ' + str(day) + ' already passed. Type "advance" to proceed.'
+            print(f"  {warn(already_msg)}")
             return
 
         # Start exchange server
@@ -3271,7 +3276,8 @@ class ArbitrageAcademyCLI(cmd.Cmd):
 
         self.state.advance_day()
         print(f"  {c(Color.BRIGHT_GREEN, '[' + BoxChars.CHECK + ']')} Advanced to Day {self.state.current_day}")
-        print(f"  {c(Color.BRIGHT_YELLOW, 'Type \"start\" to begin.')}")
+        start_msg = 'Type "start" to begin.'
+        print(f"  {c(Color.BRIGHT_YELLOW, start_msg)}")
 
     def do_run(self, arg: str):
         """Run the day's solution file. Usage: run [args]"""
@@ -3407,7 +3413,8 @@ class ArbitrageAcademyCLI(cmd.Cmd):
             print(self.risk_mgr.risk_report(self.state.current_day))
             if cb:
                 print(f"  {c(Color.FAIL, 'WARNING: Circuit breaker is active. Trading halted.')}")
-                print(f"  {c(Color.WARN, 'Run \"risk_reset\" to clear if you have resolved the issue.')}")
+                risk_reset_msg = 'Run "risk_reset" to clear if you have resolved the issue.'
+                print(f"  {c(Color.WARN, risk_reset_msg)}")
             self.ledger.close()
         except Exception as e:
             print(f"  {c(Color.ERROR, 'Risk report error: ' + str(e))}")
@@ -3469,7 +3476,8 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         # We can't easily get interactive input in cmd, so just ask
         # We'll handle this via the pre/post loop
         self._pending_reset = True
-        print(f"  {warn('Cancelled. Use \"reset_confirm\" to execute reset.')}")
+        cancel_msg = 'Cancelled. Use "reset_confirm" to execute reset.'
+        print(f"  {warn(cancel_msg)}")
 
     def do_reset_confirm(self, arg: str):
         """Confirm and execute reset. Usage: reset_confirm"""
@@ -3487,7 +3495,8 @@ class ArbitrageAcademyCLI(cmd.Cmd):
             os.remove(self.state.ledger_db)
 
         print(f"  {c(Color.BRIGHT_RED, 'ALL PROGRESS RESET.')}")
-        print(f"  {c(Color.BRIGHT_WHITE, 'Type \"start\" to begin again from Day 1.')}")
+        reset_msg = 'Type "start" to begin again from Day 1.'
+        print(f"  {c(Color.BRIGHT_WHITE, reset_msg)}")
 
     def do_help(self, arg: str):
         """Show available commands."""
