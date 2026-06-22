@@ -1,314 +1,270 @@
-<div align="center">
-  <br>
-  <h1>⚡ NovaCap · Principal Strategist</h1>
-  <p><strong>90-Day FinTech Arbitrage Training Simulator</strong></p>
-  <p>
-    <em>"This is not a course. This is a simulation of the most demanding trading desk in the region."</em>
-  </p>
-  <br>
-  <p>
-    <a href="#-quick-start"><img src="https://img.shields.io/badge/Quick_Start-⬇-6366f1?style=for-the-badge" alt="Quick Start"></a>
-    <a href="#-features"><img src="https://img.shields.io/badge/Features-📋-8b5cf6?style=for-the-badge" alt="Features"></a>
-    <a href="#-architecture"><img src="https://img.shields.io/badge/Architecture-🏗️-a855f7?style=for-the-badge" alt="Architecture"></a>
-    <a href="#-cli-reference"><img src="https://img.shields.io/badge/CLI-⌨️-6366f1?style=for-the-badge" alt="CLI Reference"></a>
-    <a href="#-documentation"><img src="https://img.shields.io/badge/Docs-📖-8b5cf6?style=for-the-badge" alt="Documentation"></a>
-  </p>
-  <br>
-  <!-- Badges -->
-  <p>
-    <img src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
-    <img src="https://img.shields.io/badge/dependencies-none-brightgreen?style=flat-square" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/LOC-~8,000-48dbfb?style=flat-square" alt="~8,000 LOC">
-    <img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="License MIT">
-    <img src="https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-94a3b8?style=flat-square" alt="Platform">
-    <img src="https://img.shields.io/badge/status-active-22c55e?style=flat-square" alt="Status: Active">
-  </p>
-  <br>
-</div>
+# NovaCap — Multi-Agent Algorithmic Trading Simulation Framework
+
+**Version:** 1.0.0 | **Python:** 3.8+ | **Dependencies:** None (stdlib only)
+
+NovaCap is a self-contained, multi-agent algorithmic trading simulation environment built entirely with the Python standard library. It implements a layered agent hierarchy — data ingestion, signal generation, execution, and risk management — orchestrated via concurrent HTTP servers, a SQLite double-entry ledger, and an AST-level static analysis pipeline. The system spans a 90-day escalating curriculum across three market regimes.
+
+**Risk Disclosure:** This software generates entirely synthetic market data. Nothing herein constitutes financial advice, trading recommendations, or investment guidance. All performance metrics produced by the simulator are for educational purposes only and do not imply real-world profitability.
 
 ---
 
-## 📋 Overview
+## Architecture Overview
 
-**NovaCap Principal Strategist** is a hard-mode, self-contained algorithmic trading training simulator. You write Python code against a live mock exchange, log trades to a double-entry SQLite ledger, pass AST static audits, and face ruthless end-of-day evaluations.
+The system is decomposed into five agent layers, each running in its own thread or process, communicating via HTTP REST and a shared SQLite database:
 
-> **Score 100 or you don't advance.**
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     NOVACAP MULTI-AGENT ARCHITECTURE                      │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌─────────────────────┐    ┌─────────────────────┐                      │
+│  │   CLI Orchestrator  │    │   Web UI Dashboard   │                      │
+│  │   (cmd.Cmd)         │────│   HTTP :8081         │                      │
+│  │   State Machine     │    │   Real-time Stats     │                      │
+│  └─────────┬───────────┘    └─────────────────────┘                      │
+│            │                                                             │
+│            ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                    LAYER 1: DATA INGESTION                        │    │
+│  │  Mock Exchange Server (HTTP :8080) — 5 synthetic symbols          │    │
+│  │  Configurable volatility, spread, order book depth               │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│            │                                                             │
+│            ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                    LAYER 2: SIGNAL GENERATION                      │    │
+│  │  User-written Python strategy (per-day solution file)             │    │
+│  │  SMA, EMA, Bollinger Bands, RSI, arbitrage detection             │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│            │                                                             │
+│            ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                    LAYER 3: EXECUTION ENGINE                      │    │
+│  │  REST-based order placement (POST /v1/execute)                   │    │
+│  │  Position sizing, fee deduction, trade confirmation              │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│            │                                                             │
+│            ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                    LAYER 4: LEDGER & ACCOUNTING                    │    │
+│  │  SQLite double-entry bookkeeping (9 standard accounts)            │    │
+│  │  Per-symbol P&L, fee tracking, audit trail                       │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│            │                                                             │
+│            ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                    LAYER 5: RISK & EVALUATION                      │    │
+│  │  AST static code auditor — 9 check categories                     │    │
+│  │  Hidden test suite execution — subprocess isolation               │    │
+│  │  Ledger integrity verification (debits = credits)                 │    │
+│  │  Composite scoring 0–100                                          │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
 
-Built entirely with the **Python standard library** — zero external dependencies, zero pip installs, zero configuration. A complete trading simulation environment in roughly 8,000 lines of Python across three integrated modules.
+### Inter-Agent Communication
 
-### Who Is This For?
+- **Layer 1 ↔ Layer 2:** HTTP REST. The mock exchange exposes `GET /v1/orderbook`, `GET /v1/ticker`, `POST /v1/execute`. User strategies use `urllib.request` to consume these endpoints.
+- **Layer 2 ↔ Layer 4:** SQLite. Trade executions are recorded via `LedgerEngine.record_trade()`, which creates double-entry journal entries.
+- **Layer 5 ↔ All:** File system + subprocess. The evaluation engine reads user solution files from disk, parses them with the `ast` module, executes hidden test runners in isolated subprocesses, and queries the ledger for balance verification.
 
-| Audience | Use Case |
-|----------|----------|
-| **Quantitative Developers** | Practice algorithmic trading in a risk-free simulated environment |
-| **Finance Students** | Build hands-on experience with order books, arbitrage strategies, and risk management |
-| **Python Engineers** | Hone your skills against an unforgiving static AST auditor and test suite |
-| **Bootcamps & Academies** | Run a 90-day structured curriculum with measurable scoring |
+### Asynchronous Design
+
+The CLI orchestrator, mock exchange, and web dashboard each run on independent threads:
+
+| Component | Threading Model | Port |
+|-----------|----------------|------|
+| CLI (`PrincipalStrategistApp`) | Main thread (blocking `cmdloop`) | stdin/stdout |
+| Mock Exchange (`MockExchangeServer`) | Daemon thread (`HTTPServer.serve_forever`) | 8080 |
+| Web UI (`WebUIServer`) | Daemon thread (`HTTPServer.serve_forever`) | 8081 |
+
+The `StateManager` persists progression state to `save_state.json`, enabling crash recovery across sessions.
 
 ---
 
-## 🚀 Quick Start
+## Strategy Mechanics
 
-```bash
-# No pip install. No requirements.txt. No setup. No configuration.
+### Alpha Generation Framework
+
+The curriculum structures alpha generation across three market regimes, each corresponding to a 30-day phase:
+
+| Phase | Days | Regime | Alpha Mechanism |
+|-------|------|--------|----------------|
+| 1 | 1–30 | Trending / Mean-Reverting | Moving average crossovers (SMA-5 / SMA-20), Bollinger Band reversion, RSI thresholding |
+| 2 | 31–60 | Arbitrage / Fragmented | Cross-exchange spread detection, triangular arbitrage (BTC→ETH→USDT→BTC), Kelly Criterion sizing |
+| 3 | 61–90 | Regulated / High-Latency | Latency-aware execution, slippage modeling, SOCPA/IFRS 9 compliance, VaR/CVaR stress testing |
+
+### Market Data Model
+
+The `MockPriceGenerator` (internal to `MockExchangeServer`) produces synthetic tick data for five symbols with configurable parameters:
+
+```
+BTC/USD, ETH/USDT, SOL/USD, AVAX/USDT, LINK/USD
+```
+
+Each symbol's price evolves via a Gaussian random walk with:
+- Per-tick volatility `σ ∈ [0.001, 0.02]`
+- Bid-ask spread proportional to volatility
+- Order book depth modeled as a limited-liquidity L2 snapshot (15 levels per side)
+
+### Technical Indicator Computation
+
+User strategies compute indicators from fetched order book mid-prices:
+
+```python
+# Example: SMA calculation within user strategy
+def compute_sma(prices: list[float], window: int) -> float:
+    if len(prices) < window:
+        return 0.0
+    return sum(prices[-window:]) / window
+```
+
+The AST auditor enforces that all functions carry PEP 484 type annotations and that network calls are wrapped in `try`/`except`.
+
+---
+
+## Execution & Risk Protocols
+
+### Position Sizing
+
+The simulated exchange executes trades at the posted quantity and price from the order book. Partial fills are not modeled — orders execute fully at the best available price or are rejected. Position sizing parameters are defined per user strategy; the system enforces no hard cap beyond available account balances in the ledger.
+
+### Fee & Slippage Model
+
+| Parameter | Default Value | Source |
+|-----------|---------------|--------|
+| Exchange fee | 0.1% per trade (`fee = total * 0.001`) | `MockExchangeHandler` |
+| Spread | Variable, per symbol (proportional to σ) | `MockPriceGenerator` |
+| Slippage | Not modeled in base simulation | Phase 3 introduces latency simulation |
+
+Fees are recorded as double-entry: debit `4100 (Fee Expense)`, credit `1000 (Cash - USD)`.
+
+### Risk Constraints (Phase 3)
+
+Phase 3 introduces SOCPA-compliant risk controls:
+
+- **Maximum Drawdown:** Strategies are evaluated on peak-to-trough drawdown; no automatic circuit breaker in the simulation, but evaluation scoring penalizes excessive drawdown.
+- **Hard Stop-Loss:** Not enforced by the exchange — the user's strategy must implement stop-loss logic. The AST auditor checks for `while True` loops without break conditions (infinite loop risk).
+- **Position limits:** No hard limit by the exchange, but the ledger model (9 accounts) enforces double-entry balance: total debits must equal total credits.
+
+### Hard Stop-Loss Logic (User-Implemented)
+
+```python
+# Template from solution_day_XXX.py
+MAX_DRAWDOWN_PCT = 0.05   # 5% max loss per session
+POSITION_LIMIT_PCT = 0.10 # 10% of capital per position
+
+def check_stop_loss(current_pnl: float, peak_pnl: float) -> bool:
+    dd = (peak_pnl - current_pnl) / peak_pnl if peak_pnl > 0 else 0
+    return dd >= MAX_DRAWDOWN_PCT
+```
+
+---
+
+## Reproducibility
+
+### Prerequisites
+
+- Python 3.8+ (3.11+ recommended for f-string syntax)
+- Ports 8080 and 8081 must be available
+- No `pip install`, no `requirements.txt`, no Docker — zero external dependencies
+
+### Baseline Backtest (5-Minute Setup)
+
+```powershell
+# 1. Clone and enter directory
+git clone https://github.com/mutima89/NovaCap.git
+cd NovaCap
+
+# 2. Launch simulator
 python arbitrage_academy.py
 
-# The Web UI starts on:   http://localhost:8081
-# The Mock Exchange on:   http://localhost:8080
+# 3. Start Day 1
+# Inside CLI:
+strategist> start
+
+# 4. Navigate to generated workspace
+# workspace/day_001/solution_day_001.py
+
+# 5. Write strategy, then execute
+strategist> run
+strategist> eod
 ```
 
-### System Requirements
+The mock exchange begins serving at `http://localhost:8080`, and the web dashboard is accessible at `http://localhost:8081`.
 
-| Requirement | Minimum |
-|-------------|---------|
-| **Python** | 3.8+ (3.11+ recommended for f-string support) |
-| **Dependencies** | None — standard library only |
-| **Ports** | 8080 (exchange) and 8081 (dashboard) must be free |
-| **OS** | Windows, macOS, Linux |
-
----
-
-## 🎮 The Principal Strategist CLI
-
-Once running, you are greeted by the **Principal Strategist** — a clinical, uncompromising CLI persona. Ten commands control your entire training pipeline:
-
-```
-strategist> start     Launch exchange + generate Day 1 workspace
-strategist> run       Execute your solution code against the exchange
-strategist> eod       End-of-Day: AST audit → tests → ledger check → score
-strategist> advance   Move to next day (requires 100/100)
-strategist> status    View training progress and current score
-strategist> brief     Read today's mission briefing
-strategist> audit     Run AST check only (no score impact)
-strategist> reset     Regenerate current day's workspace
-strategist> help      Show all commands
-strategist> quit      Exit the simulator
-```
-
----
-
-## ✨ Features
-
-### Core Modules
-
-| Module | Description |
-|--------|-------------|
-| **Mock Exchange** | Threaded HTTP REST server on `:8080`. Maintains order books, tickers, and executes trades for BTC/USD, ETH/USDT, and more. Synthetic market data with configurable volatility. |
-| **Web Dashboard** | Dark-themed browser UI on `:8081`. Live ticker feed, code editor with syntax highlighting, evaluation history timeline, and interactive ledger explorer. |
-| **Double-Entry Ledger** | SQLite-backed accounting engine with 9 standard accounts. Tracks P&L per symbol, enforces debit/credit balance, and logs every transaction with full audit trail. |
-| **AST Code Auditor** | Static analysis engine using Python's `ast` module. 9 check categories scan your solution code for violations — missing error handling, unsafe patterns, code complexity issues. |
-| **Evaluation Pipeline** | End-of-Day engine that runs three stages in sequence: AST audit → subprocess test suite → ledger integrity verification. Produces a score from 0–100. |
-| **Workspace Generator** | Generates per-day working directories containing a mission briefing, boilerplate solution template, and hidden test suites. Days are independent and cumulative. |
-| **90-Day Curriculum** | Three escalating phases progressing from data ingestion fundamentals through multi-leg arbitrage strategies to SOCPA-compliant financial reporting. |
-
-### Zero Dependencies
-
-All functionality is built using Python's standard library:
-
-```
-http.server  ·  socketserver  ·  sqlite3  ·  ast  ·  threading
-urllib      ·  json          ·  subprocess  ·  cmd  ·  pathlib
-```
-
----
-
-## 🏛️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                                                                         │
-│                         NOVACAP SYSTEM ARCHITECTURE                      │
-│                                                                         │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   ┌──────────────────┐      ┌──────────────────┐      ┌──────────────┐ │
-│   │   CLI Interface  │      │  Mock Exchange   │      │   Web UI     │ │
-│   │   (cmd.Cmd)      │─────▶│  HTTP :8080      │◀─────│  Dashboard   │ │
-│   │   10 commands    │      │  REST API        │      │  :8081       │ │
-│   └────────┬─────────┘      └────────┬─────────┘      └──────────────┘ │
-│            │                         │                                 │
-│            ▼                         ▼                                 │
-│   ┌─────────────────────────────────────────────────────────────────┐  │
-│   │                    SQLite Ledger Engine                          │  │
-│   │       9 accounts · Double-entry · P&L per symbol                │  │
-│   │       Transaction log · Audit trail · Balance verification      │  │
-│   └─────────────────────────────────────────────────────────────────┘  │
-│            │                                                           │
-│            ▼                                                           │
-│   ┌─────────────────────────────────────────────────────────────────┐  │
-│   │                   EOD Evaluation Pipeline                        │  │
-│   │                                                                  │  │
-│   │   ┌──────────┐    ┌──────────────┐    ┌──────────────────┐      │  │
-│   │   │  AST     │───▶│  Subprocess  │───▶│  Ledger Verify   │      │  │
-│   │   │  Audit   │    │  Tests       │    │  (debits=credits) │      │  │
-│   │   └──────────┘    └──────────────┘    └────────┬─────────┘      │  │
-│   │                                                ▼                │  │
-│   │                                       ┌──────────────────┐      │  │
-│   │                                       │   Score 0–100    │      │  │
-│   │                                       └──────────────────┘      │  │
-│   └─────────────────────────────────────────────────────────────────┘  │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-
-1. **Start** — CLI launches the mock exchange on `:8080` and generates Day 1 workspace with briefing, template, and tests
-2. **Code** — You write Python strategy code in the generated solution file
-3. **Run** — Your code executes against the live mock exchange, placing orders and logging trades to the SQLite ledger
-4. **Evaluate** — End-of-Day runs three-stage evaluation producing a score
-5. **Advance** — Score 100/100 to unlock the next day's challenge
-
----
-
-## 📚 90-Day Curriculum
-
-The training program is divided into three escalating phases:
-
-### Phase 1 — Days 1–30: Data Ingestion & Risk Math
-
-> **Focus:** Market data handling, technical indicators, risk calculation
-
-- Fetch order books from REST API endpoints
-- Calculate SMA, EMA, Bollinger Bands, RSI
-- Log positions to double-entry SQLite ledger
-- Pass AST audits for code quality
-- Build foundational risk models
-
-### Phase 2 — Days 31–60: Arbitrage Logic
-
-> **Focus:** Multi-exchange strategies, position sizing, execution
-
-- Cross-exchange spread detection and monitoring
-- Triangular arbitrage: BTC → ETH → USDT → BTC
-- Kelly Criterion optimal position sizing
-- Latency simulation and slippage modeling
-- Statistical arbitrage pair selection
-
-### Phase 3 — Days 61–90: Slippage & SOCPA Compliance
-
-> **Focus:** Risk management, regulatory compliance, reporting
-
-- SOCPA-compliant audit trails
-- IFRS 9 financial instrument reporting
-- VaR/CVaR stress testing and scenario analysis
-- Full compliance report generation
-- Production-grade trade reconciliation
-
----
-
-## 📊 Scoring System
-
-| Violation | Penalty |
-|-----------|---------|
-| **Critical AST** — missing `try`/`except`, `eval()`/`exec()`, unsafe patterns | **−40 each** (2 violations = automatic 0) |
-| **Warning AST** — deeply nested loops, division by zero risk, global state mutations | **−10 each** |
-| **Test Failure** — any unit/integration test in the day's suite fails | **−30 each** |
-| **Ledger Imbalance** — debits do not equal credits after your trading session | **−30 each** |
-
-**You must score 100/100 to advance to the next day.**
-
----
-
-## 🛠️ Project Structure
+### Project Structure
 
 ```
 NovaCap/
-├── arbitrage_academy.py      # Master simulator: CLI, exchange, ledger,
-│                              #   AST auditor, evaluation engine (3,961 LOC)
-├── finance_sim.py            # Corporate finance daily simulation (2,592 LOC)
-├── server.py                 # HTTP web server for browser UI (1,292 LOC)
-├── generate_pdfs.py          # Documentation PDF generator
-├── BEFORE_YOU_BEGIN.html     # Comprehensive prep guide (Python + finance)
-├── TRAINING_PROGRAM.html     # Full 90-day syllabus with scoring system
-├── TRAINING_PROGRAM.md       # Markdown version of the syllabus
-├── promo.html                # Product landing page
-├── PRODUCT.md                # Technical product documentation
-├── SALES_PAGE.md             # Sales and listing copy
-├── EULA.md                   # MIT License
-├── docs/                     # Generated PDF documentation
-│   ├── promo.pdf
-│   ├── product.pdf
-│   ├── sales-page.pdf
-│   ├── eula.pdf
-│   ├── training-program.pdf
-│   ├── before-you-begin.pdf
-│   └── index.html            # Dark-themed documentation hub
-└── .gitignore
+├── arbitrage_academy.py    # Master simulator: all 5 agent layers (~3,961 LOC)
+├── finance_sim.py          # Corporate finance simulation (2,592 LOC)
+├── server.py               # Web UI HTTP server (1,292 LOC)
+├── generate_pdfs.py        # PDF export utility
+├── docs/                   # Generated documentation (PDF)
+├── workspace/              # Per-day generated workspaces (gitignored)
+├── save_state.json         # Persistent state machine (gitignored)
+├── training_ledger.db      # SQLite double-entry ledger (gitignored)
+├── BEFORE_YOU_BEGIN.html   # Prep guide
+├── TRAINING_PROGRAM.html   # 90-day syllabus
+├── EULA.md                 # MIT License
+└── README.md
 ```
 
----
+### Verification
 
-## 📖 Documentation
+After running `eod`, verify the evaluation output:
 
-All documentation is available as rendered PDFs in the `docs/` directory:
+```
+Score: 100/100 (100.0%)
+Status: PASS
+Ledger Integrity: Verified (debits = credits)
+```
 
-| Document | Description |
-|----------|-------------|
-| [📄 Promo](docs/promo.pdf) | Product landing page with full feature showcase |
-| [📄 Product](docs/product.pdf) | Technical README with architecture and CLI reference |
-| [📄 Sales Page](docs/sales-page.pdf) | Sales / listing copy |
-| [📄 License](docs/eula.pdf) | MIT License — full terms |
-| [📄 Training Program](docs/training-program.pdf) | Full 90-day syllabus with scoring breakdown |
-| [📄 Before You Begin](docs/before-you-begin.pdf) | Comprehensive prep guide with Python & finance concepts |
-
-Open [`docs/index.html`](docs/index.html) for a dark-themed hub linking to all documents.
+Successful completion of each day requires a score of exactly 100/100.
 
 ---
 
-## 📜 License
+## Evaluation Pipeline
 
-This project is licensed under the **MIT License** — see [`EULA.md`](EULA.md) for the full text.
+The `EvaluationEngine` executes three serialized stages on `eod`:
 
-You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided the copyright notice is preserved.
+```
+Stage 1: AST Static Audit
+├── Syntax validation
+├── Network call exception coverage
+├── Nested loop complexity (O(n²) detection)
+├── Security patterns (eval/exec/pickle)
+├── PEP 484 annotation compliance
+├── Division-by-zero risk
+├── Infinite loop detection
+└── Global state prohibition
 
----
+Stage 2: Subprocess Test Suite
+├── Hidden unit tests per day
+├── 30-second timeout
+└── JSON-serialized results
 
-## 🧪 Technical Highlights
+Stage 3: Ledger Integrity
+├── Total debits == Total credits (tolerance: 0.001)
+└── Per-symbol P&L computation
+```
 
-- **3,961 lines** in the master simulator (`arbitrage_academy.py`) — a single-file marvel of Python standard library engineering
-- **Threaded HTTP servers** — mock exchange and web dashboard run concurrently with the CLI
-- **AST-level code analysis** — your Python source is parsed and checked for 9 categories of violations before tests even run
-- **Double-entry accounting** — every trade is logged to SQLite with full audit trail; debits must equal credits
-- **Synthetic market engine** — generates realistic order book dynamics with configurable volatility and spread
-- **No dependencies** — zero pip packages, zero requirements.txt, zero setup.py
+### Scoring Matrix
 
----
-
-## 🤝 Contributing
-
-Contributions, bug reports, and feature requests are welcome via the [issue tracker](https://github.com/mutima89/NovaCap/issues).
-
-Before contributing:
-
-1. This project is [MIT licensed](EULA.md) — contributions are accepted under the same terms
-2. Ensure your code passes the AST auditor checks
-3. Maintain zero-dependency policy (standard library only)
-
----
-
-## 🧑‍💻 About This Project
-
-NovaCap is a **personal project** — a self-built trading simulator born from a deep curiosity at the intersection of Python engineering and quantitative finance. Every line of code was written with significant AI assistance (think of AI as a pair-programming co-pilot that never sleeps).
-
-The "NovaCap Financial Technologies" persona is part of the simulation's narrative — it sets the tone for the 90-day training experience, but there's no company behind it. Just a developer who wanted to build something challenging and put it out in the open.
-
-> **Disclaimer:** All market data generated by this simulator is entirely synthetic. This is a code training and education tool. Nothing in this software constitutes financial advice, trading recommendations, or investment guidance.
+| Condition | Deduction |
+|-----------|-----------|
+| Critical AST violation (missing try/except, eval/exec) | −40 each (≥2 = automatic 0) |
+| AST warning (nested loops, missing annotations, global state) | −10 each |
+| Test failure | Proportional deduction (up to −60) |
+| Ledger imbalance | 0 (automatic failure) |
+| No solution file | 0 |
 
 ---
 
-<div align="center">
-  <br>
-  <p>
-    <sub>
-      NovaCap &nbsp;·&nbsp;
-      <a href="https://github.com/mutima89/NovaCap">GitHub</a> &nbsp;·&nbsp;
-      <a href="docs/index.html">Documentation</a> &nbsp;·&nbsp;
-      <a href="EULA.md">MIT License</a>
-    </sub>
-  </p>
-  <p>
-    <sub>Built with Python standard library — zero dependencies, maximum rigor.</sub>
-  </p>
-  <br>
-</div>
+## License
+
+MIT License — see [`EULA.md`](EULA.md).
+
+Copyright (c) 2026 Mutima — NovaCap Financial Technologies Ltd.
