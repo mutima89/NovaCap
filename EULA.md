@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Mutima — NovaCap Financial Technologies Ltd.
+Copyright (c) 2026 mutima89 — NovaCap Financial Technologies Ltd.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -416,5 +416,5 @@ This software generates entirely synthetic market data. Nothing herein constitut
 ---
 
 <div align="center">
-  <sub>Built with ❤️ and Python stdlib | MIT Licensed | © 2026 Mutima — NovaCap Financial Technologies Ltd.</sub>
+  <sub>Built with ❤️ and Python stdlib | MIT Licensed | © 2026 mutima89 — NovaCap Financial Technologies Ltd.</sub>
 </div>
