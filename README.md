@@ -1,42 +1,100 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.8+">
-  <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=for-the-badge&logo=zeromq&logoColor=white" alt="Zero Dependencies">
-  <img src="https://img.shields.io/github/actions/workflow/status/mutima89/NovaCap/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI" alt="CI">
-  <img src="https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="MIT License">
-  <img src="https://img.shields.io/badge/LOC-4%2C200+-orange?style=for-the-badge&logo=codefactor&logoColor=white" alt="4,200+ LOC">
-</p>
+<div align="center">
+  <pre style="font-size: 1.2em; line-height: 1.4;">
+███╗   ██╗ ██████╗ ██╗   ██╗ █████╗  ██████╗ █████╗ ██████╗
+████╗  ██║██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔══██╗██╔══██╗
+██╔██╗ ██║██║   ██║██║   ██║███████║██║     ███████║██████╔╝
+██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║██║     ██╔══██║██╔═══╝
+██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║╚██████╗██║  ██║██║
+╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝
+  </pre>
+</div>
 
 <h1 align="center">NovaCap</h1>
 <h3 align="center">Multi-Agent Algorithmic Trading Simulation Framework</h3>
-<p align="center"><em>One file. Zero dependencies. 90 days that will change how you write code.</em></p>
-
-<br>
 
 <p align="center">
-  <b>Write real Python strategies against a regime-switching market with a full limit order book,<br>
-  double-entry accounting, institutional risk controls, and Monte Carlo backtesting —<br>
-  all inside a single <code>.py</code> file.</b>
+  <img src="https://img.shields.io/github/stars/mutima89/NovaCap?style=for-the-badge&logo=github&logoColor=white&label=STARS" alt="Stars">
+  <img src="https://img.shields.io/github/last-commit/mutima89/NovaCap?style=for-the-badge&logo=git&logoColor=white&label=LAST%20COMMIT" alt="Last Commit">
+  <img src="https://img.shields.io/github/repo-size/mutima89/NovaCap?style=for-the-badge&logo=files&logoColor=white&label=SIZE" alt="Repo Size">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.8+">
+  <img src="https://img.shields.io/badge/dependencies-zero-success?style=for-the-badge&logo=zeromq&logoColor=white" alt="Zero Dependencies">
+  <img src="https://img.shields.io/github/actions/workflow/status/mutima89/NovaCap/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI%20PIPELINE" alt="CI">
+  <img src="https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="MIT License">
+  <img src="https://img.shields.io/badge/LOC-4%2C200+-FF6F00?style=for-the-badge&logo=codefactor&logoColor=white" alt="4,200+ LOC">
 </p>
 
 <br>
+
+> <b>Write real Python strategies against a regime-switching market with a full limit order book,<br>
+> double-entry accounting, institutional risk controls, and Monte Carlo backtesting —<br>
+> all inside a single <code>.py</code> file. <b>Zero dependencies.</b>
+
+<br>
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <sub><b>90-DAY<br>CURRICULUM</b></sub>
+      </td>
+      <td align="center">
+        <sub><b>19<br>CLASSES</b></sub>
+      </td>
+      <td align="center">
+        <sub><b>4,200+<br>LOC</b></sub>
+      </td>
+      <td align="center">
+        <sub><b>6 AGENT<br>LAYERS</b></sub>
+      </td>
+      <td align="center">
+        <sub><b>0<br>DEPS</b></sub>
+      </td>
+      <td align="center">
+        <sub><b>5 PYTHON<br>VERSIONS</b></sub>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
 ## 📖 About
 
+<p align="center">
+  <em>"This is not a course. This is a simulation of the most demanding trading desk in the region."</em>
+</p>
+
 NovaCap drops you into the role of a **quantitative trading strategist** aboard a proprietary trading desk. Every trade, every risk report, every backtest iteration runs through the same pipeline an actual quant firm would use:
 
 <p align="center">
-  <code>Market Data → Signal → Execution → Ledger → Risk → Evaluation</code>
+  <code>Market Data  →  Signal  →  Execution  →  Ledger  →  Risk  →  Evaluation</code>
 </p>
 
 The only difference? The market is synthetic and the capital is fake. **The lessons are not.**
 
-Built on six integrated agent layers, NovaCap is a self-contained ecosystem with HMM regime-switching dynamics, price-time priority limit order books, SQLite double-entry accounting, VaR/CVaR risk guards, and AST-level code auditing — running on the Python standard library alone.
+Built on six integrated agent layers, NovaCap is a self-contained ecosystem with HMM regime-switching dynamics, price-time priority limit order books, SQLite double-entry accounting, VaR/CVaR risk guards, and AST-level code auditing — running on the **Python standard library alone**.
+
+<br>
+
+### 💡 Why NovaCap?
+
+| Other Trading Simulators | NovaCap |
+|--------------------------|---------|
+| Require `pip install` packages | **Zero dependencies** — stdlib only |
+| Pre-built GUIs, no real coding | Write **real Python** strategies |
+| Multiple-choice quizzes | **AST code audits** + hidden test suites |
+| Self-paced, no standards | **Score 100/100** or you don't advance |
+| Opaque market dynamics | Observable **regime-switching HMM** |
+| Single asset class | **7 correlated symbols** with order books |
+| No risk framework | Institutional **VaR/CVaR/limits/circuit breakers** |
+| Black-box evaluation | **Transparent scoring** with weighted deductions |
 
 ---
 
-## ✨ Capabilities
+## ✨ Features
 
 ### 📊 Market Engine
 - ✅ **Two-regime HMM** — low-vol trending (σ=0.003), high-vol mean-reverting (σ=0.025)
@@ -94,14 +152,16 @@ python arbitrage_academy.py
 ```
 
 ```text
-strategist> start       Launch exchange + generate Day 1 solution template
-strategist> run         Execute today's Python strategy
-strategist> eod         End-of-Day evaluation and scoring
-strategist> risk        Display VaR, CVaR, circuit breaker, positions
-strategist> backtest    Run Monte Carlo backtest (30 iterations × 30 days)
+⚡ strategist> start       Launch exchange + generate Day 1 solution template
+⚡ strategist> run         Execute today's Python strategy
+⚡ strategist> eod         End-of-Day evaluation and scoring
+⚡ strategist> risk        Display VaR, CVaR, circuit breaker, positions
+⚡ strategist> backtest    Run Monte Carlo backtest (30 iterations × 30 days)
 ```
 
 **Prerequisites:** Python 3.8+ · Ports `8080` and `8081` available · **No `pip install`**
+
+> 💡 **Tip:** Run `strategist> help` inside the CLI for a full command reference.
 
 ---
 
@@ -156,7 +216,7 @@ strategist> backtest    Run Monte Carlo backtest (30 iterations × 30 days)
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Communication
+### 🔗 Communication
 
 | Between | Protocol | Mechanism |
 |---------|----------|-----------|
@@ -179,14 +239,14 @@ The `MockPriceGenerator` implements a two-regime Markov-switching model:
 
 | Regime | σ | Mean Reversion | Trend Bias | Spread | Jump λ | Book Depth |
 |--------|----|----------------|------------|--------|--------|------------|
-| 0 — LOW_VOL_TRENDING | 0.003 | 0.002 | +0.0004 | 0.8× | 0.002 | 12 levels |
-| 1 — HIGH_VOL_MEAN_REVERTING | 0.025 | 0.08 | −0.0001 | 1.8× | 0.015 | 6 levels |
+| 0 — LOW_VOL_TRENDING | `0.003` | `0.002` | `+0.0004` | `0.8×` | `0.002` | 12 levels |
+| 1 — HIGH_VOL_MEAN_REVERTING | `0.025` | `0.08` | `−0.0001` | `1.8×` | `0.015` | 6 levels |
 
 **Transition matrix:**
-- `P(0 → 1) = 0.15` — minimum 30 ticks in regime 0 before switching
+- `P(0 → 1) = 0.15` — minimum 30 ticks in regime 0
 - `P(1 → 0) = 0.30` — minimum 20 ticks in regime 1
 
-Regime state is exposed via `GET /v1/regime` and embedded in every order book and ticker response, allowing strategies to condition behavior on detected market conditions.
+Regime state is exposed via `GET /v1/regime` and embedded in every order book and ticker response, allowing strategies to adapt to changing market conditions.
 
 ---
 
@@ -343,14 +403,18 @@ GitHub Actions runs **19 validation stages** across **Python 3.8, 3.9, 3.10, 3.1
 
 ---
 
-## 📄 License
+## ⭐ Show Your Support
 
-MIT License — see [`EULA.md`](EULA.md).
-
-Copyright (c) 2026 Mutima — NovaCap Financial Technologies Ltd.
+If NovaCap helped you learn something about algorithmic trading, consider giving it a star ⭐ — it helps others discover the project.
 
 ---
 
-<p align="center">
-  <sub>⚠️ <strong>Risk Disclosure:</strong> This software generates entirely synthetic market data. Nothing herein constitutes financial advice, trading recommendations, or investment guidance. All performance metrics produced by the simulator are for educational purposes only and do not imply real-world profitability.</sub>
-</p>
+## ⚠️ Risk Disclosure
+
+This software generates entirely synthetic market data. Nothing herein constitutes financial advice, trading recommendations, or investment guidance. All performance metrics produced by the simulator are for educational purposes only and do not imply real-world profitability.
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ and Python stdlib | MIT Licensed | © 2026 Mutima — NovaCap Financial Technologies Ltd.</sub>
+</div>
