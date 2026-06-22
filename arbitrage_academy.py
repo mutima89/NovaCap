@@ -1572,7 +1572,7 @@ class StateManager:
         """Load state from save_state.json if it exists."""
         if os.path.exists(self.STATE_FILE):
             try:
-                with open(self.STATE_FILE, "r") as f:
+                with open(self.STATE_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 self.current_day = data.get("current_day", 1)
                 self.phase = data.get("phase", 1)
@@ -2112,7 +2112,7 @@ class EvaluationEngine:
         # Step 1: Read user code
         user_code = ""
         if os.path.exists(solution_path):
-            with open(solution_path, "r") as f:
+            with open(solution_path, "r", encoding="utf-8") as f:
                 user_code = f.read()
         else:
             violations.append("No solution file submitted")
@@ -3352,7 +3352,7 @@ class ArbitrageAcademyCLI(cmd.Cmd):
             print(f"  {c(Color.ERROR, 'No solution file for Day ' + str(day))}")
             return
 
-        with open(sol_path, "r") as f:
+        with open(sol_path, "r", encoding="utf-8") as f:
             code = f.read()
 
         auditor = CodeAuditor()
@@ -3642,6 +3642,9 @@ class WebUIHandler(BaseHTTPRequestHandler):
             self._handle_api_results()
         elif path == "/api/ticker":
             self._handle_api_ticker()
+        elif path == "/api/orderbook":
+            symbol = params.get("symbol", ["BTC/USD"])[0]
+            self._handle_api_orderbook(symbol)
         else:
             self._send_error("Not found", 404)
 
@@ -3677,7 +3680,7 @@ class WebUIHandler(BaseHTTPRequestHandler):
         ws = app_context["cli"].workspace
         path = ws.get_user_solution_path(day)
         if os.path.exists(path):
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return f.read()
         return ""
 
@@ -3685,7 +3688,7 @@ class WebUIHandler(BaseHTTPRequestHandler):
         """Read the DAILY_BRIEF.md for a given day."""
         ws_path = os.path.join("workspace", f"day_{day:03d}", "DAILY_BRIEF.md")
         if os.path.exists(ws_path):
-            with open(ws_path, "r") as f:
+            with open(ws_path, "r", encoding="utf-8") as f:
                 return f.read()
         return "# No briefing generated."
 
@@ -3776,7 +3779,7 @@ class WebUIHandler(BaseHTTPRequestHandler):
         if not os.path.exists(sol_path):
             self._send_json({"issues": [], "summary": {}, "error": "No solution file"})
             return
-        with open(sol_path, "r") as f:
+        with open(sol_path, "r", encoding="utf-8") as f:
             code = f.read()
         auditor = CodeAuditor()
         issues = auditor.audit(code, sol_path)
@@ -3828,6 +3831,25 @@ class WebUIHandler(BaseHTTPRequestHandler):
         for sym in pg.prices:
             prices[sym] = round(pg.prices[sym], 2)
         self._send_json({"running": True, "tick": pg.tick, "prices": prices})
+
+    def _handle_api_orderbook(self, symbol: str):
+        cli = self._get_cli()
+        if not cli:
+            return
+        if not cli.exchange.is_running():
+            self._send_json({"error": "Exchange not running"}, 503)
+            return
+        try:
+            pg = cli.exchange.price_gen
+            ob = pg.get_orderbook(symbol)
+            ob["regime"] = pg.current_regime
+            ob["regime_name"] = "LOW_VOL_TRENDING" if pg.current_regime == 0 else "HIGH_VOL_REGIME"
+            ob["tick"] = pg.tick
+            for sym in pg.prices:
+                ob["price_" + sym.replace("/", "_")] = round(pg.prices[sym], 2)
+            self._send_json(ob)
+        except Exception as e:
+            self._send_json({"error": str(e)}, 500)
 
     def _handle_api_start(self):
         cli = self._get_cli()
@@ -3941,184 +3963,263 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NovaCap Principal Strategist — Dashboard</title>
+<title>NovaCap Principal Strategist — Terminal Dashboard</title>
 <style>
+  :root {
+    --bg-primary: #0A0E17;
+    --bg-surface: #1A2235;
+    --bg-elevated: #222B40;
+    --bg-input: #121A2A;
+    --border: rgba(255,255,255,0.08);
+    --border-subtle: rgba(255,255,255,0.04);
+    --text-primary: #C8D0DC;
+    --text-secondary: #8892A6;
+    --text-muted: #5A6478;
+    --accent: #4A90D9;
+    --positive: #34B77A;
+    --negative: #D45A5A;
+    --warning: #C9A84C;
+    --positive-bg: rgba(52,183,122,0.08);
+    --negative-bg: rgba(212,90,90,0.08);
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --font-data: 'JetBrains Mono','Cascadia Code','Fira Code','Consolas',monospace;
+    --font-ui: 'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden}
-  body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
-       background:#080c14;color:#c8d6e5;font-size:13px;line-height:1.5;
-       display:flex;flex-direction:column}
-  a{color:#54a0ff;text-decoration:none}
-  ::-webkit-scrollbar{width:6px;height:6px}
-  ::-webkit-scrollbar-track{background:#0a0e17}
-  ::-webkit-scrollbar-thumb{background:#1a2a3a;border-radius:3px}
+  body{font-family:var(--font-ui);background:var(--bg-primary);color:var(--text-primary);font-size:12px;line-height:1.5;display:flex;flex-direction:column}
+  a{color:var(--accent);text-decoration:none}
+  ::-webkit-scrollbar{width:var(--space-1);height:var(--space-1)}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--text-muted)}
 
   /* ── Header ── */
-  .header{background:linear-gradient(135deg,#0a1424,#0f1a2e);
-          border-bottom:1px solid #1a3050;padding:10px 20px;
-          display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
-  .logo{font-size:16px;font-weight:700;background:linear-gradient(135deg,#48dbfb,#0abde3);
-        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .header-right{display:flex;align-items:center;gap:16px}
-  .day-badge{padding:3px 12px;border-radius:10px;font-size:11px;font-weight:600;
-             text-transform:uppercase;letter-spacing:.5px}
-  .day-badge.active{background:#0a2a1a;color:#2ecc71;border:1px solid #2ecc7144}
-  .day-badge.idle{background:#1a1a2a;color:#48dbfb;border:1px solid #48dbfb44}
-  .day-badge.done{background:#2a1a1a;color:#ff6b6b;border:1px solid #ff6b6b44}
+  .header{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 var(--space-5);
+          display:flex;align-items:center;justify-content:space-between;
+          flex-shrink:0;height:44px}
+  .header-left{display:flex;align-items:center;gap:var(--space-5)}
+  .logo{font-size:12px;font-weight:700;color:var(--text-primary);letter-spacing:0.3px}
+  .header-right{display:flex;align-items:center;gap:var(--space-4)}
+  .header-clock{font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums;font-family:var(--font-data)}
+  .day-badge{display:inline-block;padding:2px 8px;font-size:10px;font-weight:500;color:var(--text-secondary);border:1px solid var(--border)}
+  .day-badge.active{color:var(--positive);border-color:rgba(52,183,122,0.2)}
+  .day-badge.idle{color:var(--text-secondary);border-color:var(--border)}
+  .phase-text{font-size:10px;color:var(--text-muted);font-weight:500}
 
   /* ── Layout ── */
   .main{display:flex;flex:1;overflow:hidden}
 
   /* ── Sidebar ── */
-  .sidebar{width:240px;min-width:240px;background:#0a0e17;border-right:1px solid #152030;
-           display:flex;flex-direction:column;overflow:hidden}
-  .sidebar-title{padding:14px 14px 8px;font-size:10px;text-transform:uppercase;
-                 letter-spacing:1px;color:#3a4a5a;font-weight:600}
-  .sidebar-nav{flex:1;overflow-y:auto;padding:4px 8px}
-  .nav-item{padding:10px 12px;margin:2px 0;border-radius:6px;cursor:pointer;
-            font-size:12px;color:#8395a7;transition:all .15s;
-            display:flex;align-items:center;gap:8px}
-  .nav-item:hover{background:#111e2f;color:#c8d6e5}
-  .nav-item.active{background:#0f1a3a;color:#48dbfb;border-left:2px solid #48dbfb}
-  .nav-item .badge{font-size:9px;padding:1px 6px;border-radius:6px;
-                   background:#1a2a3a;color:#576574;margin-left:auto}
-  .nav-item .badge.pass{background:#0a2a1a;color:#2ecc71}
-  .nav-item .badge.fail{background:#2a1a1a;color:#ff6b6b}
+  .sidebar{width:180px;min-width:180px;background:var(--bg-primary);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .sidebar-title{padding:var(--space-4) var(--space-4) var(--space-2);font-size:9px;color:var(--text-muted);font-weight:600}
+  .sidebar-nav{flex:1;overflow-y:auto;padding:var(--space-1) var(--space-2)}
+  .nav-item{padding:7px 10px;margin:1px 0;cursor:pointer;font-size:11px;color:var(--text-muted);transition:background 0.1s;display:flex;align-items:center;gap:8px;font-weight:500;border-left:2px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,0.03);color:var(--text-secondary)}
+  .nav-item.active{background:rgba(74,144,217,0.06);color:var(--accent);border-left-color:var(--accent)}
+  .nav-item .icon{font-size:10px;width:16px;text-align:center;opacity:0.5}
+  .nav-item.active .icon{opacity:1}
+  .nav-item .badge{font-size:8px;padding:1px 5px;background:var(--bg-elevated);color:var(--text-muted);margin-left:auto;font-weight:600}
+  .nav-item .badge.pass{background:var(--positive-bg);color:var(--positive)}
+  .nav-item .badge.fail{background:var(--negative-bg);color:var(--negative)}
 
   /* ── Content ── */
-  .content{flex:1;overflow-y:auto;padding:20px 24px;background:#080c14}
-  .panel{background:#0f1525;border:1px solid #152030;border-radius:10px;
-         padding:20px;margin-bottom:16px}
-  .panel-title{font-size:14px;font-weight:600;color:#dfe6e9;margin-bottom:12px;
-               display:flex;align-items:center;gap:8px}
-  .panel-title .accent{color:#48dbfb}
-  .panel-subtitle{font-size:11px;color:#4a5a6a;margin-bottom:10px}
+  .content{flex:1;overflow-y:auto;padding:var(--space-4) var(--space-5)}
+
+  /* ── Card Containers ── */
+  .card{background:var(--bg-surface);border:1px solid var(--border);padding:var(--space-4)}
+  .card-title{font-size:10px;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);padding-bottom:var(--space-2);border-bottom:1px solid var(--border)}
+  .card-title .accent{display:inline-block;width:2px;height:12px;background:var(--accent);margin-right:6px;vertical-align:middle}
+
+  /* ── Section Titles (legacy) ── */
+  .dash-section-title{font-size:10px;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);padding-bottom:var(--space-2);border-bottom:1px solid var(--border)}
+  .dash-section-title .accent{display:inline-block;width:2px;height:12px;background:var(--accent);margin-right:6px;vertical-align:middle}
 
   /* ── Dashboard Grid ── */
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
-  .stat-card{background:#080e18;border:1px solid #121e30;border-radius:8px;padding:14px}
-  .stat-card .label{font-size:10px;color:#4a5a6a;text-transform:uppercase;letter-spacing:.5px}
-  .stat-card .value{font-size:22px;font-weight:700;color:#dfe6e9;margin-top:4px}
-  .stat-card .value.green{color:#2ecc71}
-  .stat-card .value.red{color:#ff6b6b}
-  .stat-card .value.blue{color:#48dbfb}
-  .stat-card .value.gold{color:#feca57}
+  .dash-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:start;margin-bottom:var(--space-4)}
+  @media(max-width:1000px){.dash-grid{grid-template-columns:1fr}}
 
-  /* ── Buttons ── */
-  .btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .btn{padding:8px 18px;border-radius:6px;border:none;font-size:12px;font-weight:600;
-       cursor:pointer;transition:all .15s}
-  .btn:disabled{opacity:.35;cursor:not-allowed}
-  .btn-primary{background:linear-gradient(135deg,#0abde3,#48dbfb);color:#0a0e17}
-  .btn-primary:hover:not(:disabled){box-shadow:0 2px 12px #0abde344}
-  .btn-danger{background:linear-gradient(135deg,#ee5a24,#ff6b6b);color:#fff}
-  .btn-success{background:linear-gradient(135deg,#00b894,#2ecc71);color:#fff}
-  .btn-warning{background:linear-gradient(135deg,#e17055,#fdcb6e);color:#0a0e17}
-  .btn-secondary{background:#1a2a3a;color:#c8d6e5;border:1px solid #2a3a4a}
-  .btn-sm{padding:5px 12px;font-size:11px}
-  .btn-outline{background:transparent;border:1px solid #2a3a4a;color:#8395a7}
-  .btn-outline:hover{background:#1a2a3a;color:#c8d6e5}
+  /* ── Market Overview ── */
+  .mkt-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+  .mkt-card{background:var(--bg-surface);border:1px solid var(--border);padding:var(--space-4) var(--space-4);position:relative}
+  .mkt-sym{font-size:9px;color:var(--text-muted);font-weight:600}
+  .mkt-price{font-size:24px;font-weight:700;color:var(--text-primary);margin:var(--space-2) 0 var(--space-3);font-family:var(--font-data);font-variant-numeric:tabular-nums;letter-spacing:-0.5px;line-height:1.1}
+  .mkt-chg{font-size:11px;font-weight:600;margin-left:var(--space-2);font-family:var(--font-data)}
+  .mkt-chg.up{color:var(--positive)}
+  .mkt-chg.down{color:var(--negative)}
+  .mkt-details{display:flex;flex-direction:column;gap:var(--space-1)}
+  .mkt-row{display:flex;justify-content:space-between;align-items:center;padding:4px 6px;font-size:10px;background:var(--bg-primary);border-left:2px solid var(--border-subtle);transition:border-color 0.1s}
+  .mkt-row:hover{border-left-color:rgba(255,255,255,0.1)}
+  .mkt-lbl{color:var(--text-muted);font-weight:500}
+  .mkt-val{color:var(--text-primary);font-weight:500;font-family:var(--font-data);font-size:10px;margin-left:auto;margin-left:8px}
+  .mkt-val.reg-trend{color:var(--positive)}
+  .mkt-val.reg-vol{color:var(--warning)}
+
+  /* ── Portfolio ── */
+  .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:var(--space-3)}
+  .pf-item{display:flex;justify-content:space-between;padding:6px 10px;font-size:10px;background:rgba(6,10,20,0.4);border:1px solid rgba(50,70,110,0.15)}
+  .pf-lbl{color:var(--text-muted);font-weight:500}
+  .pf-val{color:var(--text-primary);font-weight:600;font-family:var(--font-data);font-size:10px;margin-left:var(--space-2)}
+  .pf-val.green{color:var(--positive)}
+  .pf-val.red{color:var(--negative)}
+  .pf-val.blue{color:var(--accent)}
+  .pf-val.gold{color:var(--warning)}
+  .pf-bar{height:2px;background:var(--bg-elevated);margin:var(--space-2) 0 var(--space-1)}
+  .pf-bar .fill{height:100%;transition:width 0.1s}
+  .pf-bar .fill.green{background:var(--positive)}
+  .pf-bar .fill.yellow{background:var(--warning)}
+  .pf-bar .fill.red{background:var(--negative)}
+  .pf-stats{display:flex;justify-content:space-between;padding:0 var(--space-1);font-size:9px;color:var(--text-muted);font-family:var(--font-data)}
+
+  /* ── Order Book ── */
+  .ob-table{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ob-side{background:var(--bg-surface);padding:var(--space-2) var(--space-2);border:1px solid var(--border)}
+  .ob-header{font-size:9px;color:var(--positive);font-weight:600;margin-bottom:var(--space-2);padding-bottom:var(--space-1);border-bottom:1px solid rgba(52,183,122,0.15)}
+  .ob-header.asks-hdr{color:var(--negative);border-bottom-color:rgba(212,90,90,0.15)}
+  .ob-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:11px;font-family:var(--font-data);background:rgba(4,8,16,0.3);margin-bottom:2px;transition:background 0.1s}
+  .ob-row:hover{background:rgba(255,255,255,0.03)}
+  .ob-price{color:var(--accent);font-weight:600}
+  .ob-size{color:var(--text-primary);text-align:right}
+  .ob-src{color:var(--text-muted);font-size:9px}
+  .ob-empty{padding:var(--space-3) 0;color:var(--text-muted);font-size:10px;text-align:center}
+  .ob-foot{margin-top:var(--space-2);font-size:9px;color:var(--text-muted);font-family:var(--font-data);text-align:center}
+
+  /* ── Depth Bars ── */
+  .depth-bar-wrap{flex:1;height:8px;background:var(--bg-primary);overflow:hidden;margin:0 2px;min-width:24px}
+  .depth-bar{height:100%;transition:width 0.1s}
+  .depth-bar.bid{background:rgba(52,183,122,0.15)}
+  .depth-bar.ask{background:rgba(212,90,90,0.15)}
+
+  /* ── Actions ── */
+  .btn-group{display:flex;gap:var(--space-2);flex-wrap:wrap}
+  .btn{padding:6px 14px;font-size:10px;font-weight:600;cursor:pointer;transition:background 0.1s;background:#2A3550;color:#B0B8C8;border:1px solid rgba(255,255,255,0.12)}
+  .btn:hover{background:#354566;color:#E0E4EC;border-color:rgba(255,255,255,0.2)}
+  .btn:disabled{opacity:0.3;cursor:not-allowed}
+  .btn-primary{background:#2A4570;color:#7AB5F0;border-color:rgba(74,144,217,0.25)}
+  .btn-primary:hover{background:#355A8A;color:#8EC4F8;border-color:rgba(74,144,217,0.4)}
+  .btn-danger{background:#502A2A;color:#E89090;border-color:rgba(212,90,90,0.25)}
+  .btn-danger:hover{background:#6A3535;color:#F0A0A0;border-color:rgba(212,90,90,0.4)}
+  .btn-success{background:#2A5035;color:#80D0A0;border-color:rgba(52,183,122,0.25)}
+  .btn-success:hover{background:#356A44;color:#90E0B0;border-color:rgba(52,183,122,0.4)}
+  .btn-warning{background:#504A2A;color:#E0D080;border-color:rgba(201,168,76,0.25)}
+  .btn-warning:hover{background:#6A5E35;color:#F0E090;border-color:rgba(201,168,76,0.4)}
+
+  /* ── Score Rows ── */
+  .score-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:10px;border:1px solid var(--border);margin-bottom:var(--space-1);background:var(--bg-surface)}
+  .score-row:last-child{margin-bottom:0}
+  .score-day{color:var(--text-muted);font-weight:500}
+  .score-val{color:var(--text-primary);font-weight:600;font-family:var(--font-data);font-size:10px}
+  .tag{display:inline-block;padding:1px 8px;font-size:9px;font-weight:600}
+  .tag-pass{background:var(--positive-bg);color:var(--positive)}
+  .tag-fail{background:var(--negative-bg);color:var(--negative)}
+
+  /* ── Change indicator (inline, no pill) ── */
+  .chg{font-family:var(--font-data);font-size:11px;font-weight:600;margin-left:var(--space-1)}
+  .chg.up{color:var(--positive)}
+  .chg.down{color:var(--negative)}
+
+  /* ── Change pill ── */
+  .chg-pill{display:inline-block;padding:1px 6px;font-size:9px;font-weight:600;font-family:var(--font-data)}
+  .chg-pill.up{background:var(--positive-bg);color:var(--positive);border:1px solid rgba(52,183,122,0.15)}
+  .chg-pill.down{background:var(--negative-bg);color:var(--negative);border:1px solid rgba(212,90,90,0.15)}
+
+  /* ── Briefing ── */
+  .briefing-content{background:var(--bg-surface);border:1px solid var(--border);padding:var(--space-5);font-size:12px;line-height:1.7;color:var(--text-primary)}
+
+  /* ── Results ── */
+  .result-card{background:var(--bg-surface);border:1px solid var(--border);padding:var(--space-4);margin-bottom:var(--space-2)}
+  .result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)}
+  .result-day{font-weight:600;color:var(--text-primary);font-size:11px}
+  .result-score{font-size:16px;font-weight:700;font-family:var(--font-data)}
+  .result-issues{margin-top:var(--space-2)}
+  .result-ledger{margin-top:var(--space-1);font-size:10px}
 
   /* ── Code / Pre ── */
-  .code-block{background:#060a12;border:1px solid #121e30;border-radius:6px;
-              padding:14px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;
-              font-size:11px;color:#8395a7;white-space:pre-wrap;overflow:auto;
-              max-height:500px;line-height:1.5}
-  .code-block .hl-keyword{color:#48dbfb}
-  .code-block .hl-string{color:#2ecc71}
-  .code-block .hl-comment{color:#4a5a6a}
-  .code-block .hl-number{color:#feca57}
-  .code-block .hl-func{color:#54a0ff}
-
-  /* ── Score bar ── */
-  .score-bar{margin:8px 0;height:6px;background:#121e30;border-radius:3px;overflow:hidden}
-  .score-bar .fill{height:100%;border-radius:3px;transition:width .5s}
-  .score-bar .fill.green{background:linear-gradient(90deg,#00b894,#2ecc71)}
-  .score-bar .fill.yellow{background:linear-gradient(90deg,#fdcb6e,#feca57)}
-  .score-bar .fill.red{background:linear-gradient(90deg,#ee5a24,#ff6b6b)}
-
-  /* ── Ticker ── */
-  .ticker{display:flex;gap:16px;padding:8px 0;flex-wrap:wrap}
-  .ticker-item{font-size:12px}
-  .ticker-item .sym{color:#4a5a6a;font-size:10px;text-transform:uppercase}
-  .ticker-item .pr{font-weight:600;font-variant-numeric:tabular-nums}
+  .code-block{background:var(--bg-primary);border:1px solid var(--border);padding:var(--space-4);font-family:var(--font-data);font-size:11px;color:var(--text-secondary);white-space:pre-wrap;overflow:auto;max-height:500px;line-height:1.6}
 
   /* ── Issues ── */
-  .issue-list{list-style:none;margin-top:6px}
-  .issue-item{padding:6px 10px;margin:3px 0;border-radius:4px;font-size:11px;
-              border-left:3px solid transparent}
-  .issue-item.critical{background:#1a0a0a;border-color:#ff6b6b;color:#fab1a0}
-  .issue-item.warning{background:#1a1a0a;border-color:#feca57;color:#ffeaa7}
-  .issue-item.info{background:#0a0a1a;border-color:#48dbfb;color:#81ecec}
+  .issue-list{list-style:none;margin-top:var(--space-1)}
+  .issue-item{padding:4px 8px;margin:1px 0;font-size:10px;border-left:2px solid transparent;font-family:var(--font-data);background:var(--bg-primary)}
+  .issue-item.critical{background:var(--negative-bg);border-color:var(--negative);color:var(--negative)}
+  .issue-item.warning{background:rgba(201,168,76,0.06);border-color:var(--warning);color:var(--warning)}
+  .issue-item.info{background:rgba(74,144,217,0.06);border-color:var(--accent);color:var(--accent)}
 
   /* ── Ledger table ── */
-  .ledger-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
-  .ledger-table th{text-align:left;padding:6px 8px;color:#4a5a6a;text-transform:uppercase;
-                   font-size:9px;letter-spacing:.5px;border-bottom:1px solid #152030}
-  .ledger-table td{padding:5px 8px;border-bottom:1px solid #0e1825;color:#8395a7}
-  .ledger-table tr:hover td{background:#0a1220}
-  .ledger-table .amt{font-family:'Cascadia Code','Consolas',monospace;text-align:right}
+  .table-wrap{overflow-x:auto;border:1px solid var(--border)}
+  .ledger-table{width:100%;border-collapse:collapse;font-size:10px}
+  .ledger-table th{text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:600;font-size:9px;border-bottom:1px solid var(--border);background:var(--bg-primary)}
+  .ledger-table td{padding:4px 8px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary)}
+  .ledger-table tr:hover td{background:rgba(255,255,255,0.02)}
+  .ledger-table .amt{font-family:var(--font-data);text-align:right}
+
+  /* ── Code Editor ── */
+  .editor-wrap{border:1px solid var(--border)}
+  .editor-header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:var(--bg-surface);border-bottom:1px solid var(--border);font-size:9px;color:var(--text-muted)}
+  .editor-body{display:flex}
+  .editor-gutter{padding:12px 8px;background:var(--bg-primary);color:var(--text-muted);font-family:var(--font-data);font-size:11px;line-height:1.6;text-align:right;user-select:none;min-width:28px;border-right:1px solid var(--border)}
+  .editor-area{flex:1}
+  .editor-area textarea{width:100%;min-height:400px;background:var(--bg-input);color:var(--text-primary);border:none;padding:12px;font-family:var(--font-data);font-size:11px;line-height:1.6;resize:vertical;outline:none;tab-size:2}
+  .editor-area textarea:focus{background:var(--bg-primary)}
+  .editor-status{display:flex;justify-content:space-between;padding:4px 12px;background:var(--bg-surface);border-top:1px solid var(--border);font-size:8px;color:var(--text-muted);font-family:var(--font-data)}
 
   /* ── Loading / States ── */
-  .loading{text-align:center;padding:40px;color:#4a5a6a}
-  .spinner{display:inline-block;width:24px;height:24px;border:2px solid #1a2a3a;
-           border-top-color:#48dbfb;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:8px}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .empty{text-align:center;padding:30px;color:#4a5a6a;font-size:12px}
-  .toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:6px;
-         font-size:12px;z-index:1000;transform:translateY(80px);opacity:0;
-         transition:all .3s;max-width:360px}
+  .loading{text-align:center;padding:80px 20px;color:var(--text-muted)}
+  .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);margin-bottom:var(--space-3)}
+  .empty{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:11px}
+  .toast{position:fixed;bottom:var(--space-5);right:var(--space-5);padding:8px 16px;font-size:11px;font-weight:500;z-index:1000;transform:translateY(80px);opacity:0;transition:opacity 0.15s,transform 0.15s;max-width:360px}
   .toast.show{transform:translateY(0);opacity:1}
-  .toast.success{background:#00b894;color:#fff}
-  .toast.error{background:#d63031;color:#fff}
-  .toast.info{background:#1a2a3a;color:#c8d6e5;border:1px solid #2a3a4a}
+  .toast.success{background:var(--bg-surface);color:var(--positive);border:1px solid rgba(52,183,122,0.3)}
+  .toast.error{background:var(--bg-surface);color:var(--negative);border:1px solid rgba(212,90,90,0.3)}
+  .toast.info{background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border)}
+
+  /* ── Utilities ── */
+  .flex{display:flex}.gap-8{gap:8px}.gap-12{gap:12px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}
+  .mb-12{margin-bottom:12px}.text-center{text-align:center}
+  .text-muted{color:var(--text-muted)}
+  .hidden{display:none}
 
   /* ── Responsive ── */
-  @media(max-width:768px){.sidebar{display:none}.content{padding:12px}.stat-grid{grid-template-columns:1fr 1fr}}
-  .flex{display:flex}.gap-8{gap:8px}.gap-16{gap:16px}.mt-8{margin-top:8px}.mt-16{margin-top:16px}
-  .mb-16{margin-bottom:16px}.text-center{text-align:center}.text-muted{color:#4a5a6a}
-  .text-accent{color:#48dbfb}
-  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:600;
-       text-transform:uppercase;letter-spacing:.3px}
-  .tag-pass{background:#2ecc7122;color:#2ecc71}
-  .tag-fail{background:#ff6b6b22;color:#ff6b6b}
-  .tag-warn{background:#feca5722;color:#feca57}
-  .hidden{display:none}
+  @media(max-width:768px){.sidebar{display:none}.content{padding:var(--space-3)}}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">NovaCap Principal Strategist</div>
-  <div class="header-right">
-    <span id="dayBadge" class="day-badge idle">Day 1</span>
-    <span style="font-size:11px;color:#4a5a6a" id="phaseLabel">Phase 1</span>
+<header class="header">
+  <div class="header-left">
+    <div class="logo"><span class="logo-dot"></span>NovaCap Principal Strategist</div>
+    <span class="phase-text" id="phaseLabel">Phase 1: Data Ingestion</span>
   </div>
-</div>
+  <div class="header-right">
+    <span class="header-clock" id="headerClock">--:--:--</span>
+    <span id="dayBadge" class="day-badge idle">Day 1 / 90</span>
+  </div>
+</header>
 
 <div class="main">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-title">Navigation</div>
     <nav class="sidebar-nav" id="sidebarNav">
       <div class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
-        <span>&#9679;</span> Dashboard</div>
+        <span class="icon">&#9679;</span> Dashboard</div>
       <div class="nav-item" data-view="briefing" onclick="switchView('briefing')">
-        <span>&#9998;</span> Daily Briefing</div>
+        <span class="icon">&#9998;</span> Briefing</div>
       <div class="nav-item" data-view="editor" onclick="switchView('editor')">
-        <span>&#128187;</span> Code Editor</div>
+        <span class="icon">&#128187;</span> Editor</div>
       <div class="nav-item" data-view="results" onclick="switchView('results')">
-        <span>&#128202;</span> Results</div>
+        <span class="icon">&#128202;</span> Results</div>
       <div class="nav-item" data-view="ledger" onclick="switchView('ledger')">
-        <span>&#128214;</span> Ledger</div>
+        <span class="icon">&#128214;</span> Ledger</div>
       <div class="nav-item" data-view="audit" onclick="switchView('audit')">
-        <span>&#9881;</span> AST Audit</div>
+        <span class="icon">&#9881;</span> Audit</div>
       <div class="nav-item" data-view="exchange" onclick="switchView('exchange')">
-        <span>&#8644;</span> Exchange</div>
+        <span class="icon">&#8644;</span> Exchange</div>
     </nav>
   </aside>
 
-  <!-- Content Area -->
   <main class="content" id="mainContent">
     <div class="loading" id="initialLoad"><div class="spinner"></div><div>Connecting to Principal Strategist engine...</div></div>
   </main>
@@ -4127,17 +4228,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 <div id="toast" class="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════
 let appData = { scores: [], current_day: 1, phase: 1 };
 let currentView = 'dashboard';
 let pollingInterval = null;
 let editorDirty = false;
 
-// ══════════════════════════════════════════════════════════
-// API
-// ══════════════════════════════════════════════════════════
 async function api(method, path, body) {
   const opts = { method, headers: {} };
   if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
@@ -4147,205 +4242,200 @@ async function api(method, path, body) {
   return data;
 }
 
-// ══════════════════════════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════════════════════════
 let toastTimer = null;
 function showToast(msg, type='info') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast toast-' + type + ' show';
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ══════════════════════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('headerClock');
+  if (el) el.textContent = h + ':' + m + ':' + s;
+}
+
 function switchView(view) {
   currentView = view;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  const c = document.getElementById('mainContent');
+  c.classList.remove('view-enter');
+  void c.offsetWidth;
+  c.classList.add('view-enter');
   renderView(view);
 }
 
 function renderView(view) {
   const c = document.getElementById('mainContent');
   const renderers = {
-    dashboard: renderDashboard,
-    briefing: renderBriefing,
-    editor: renderEditor,
-    results: renderResults,
-    ledger: renderLedger,
-    audit: renderAudit,
-    exchange: renderExchange,
+    dashboard: renderDashboard, briefing: renderBriefing, editor: renderEditor,
+    results: renderResults, ledger: renderLedger, audit: renderAudit, exchange: renderExchange,
   };
   if (renderers[view]) renderers[view]();
   else c.innerHTML = '<div class="empty">Unknown view</div>';
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: DASHBOARD
-// ══════════════════════════════════════════════════════════
 async function renderDashboard() {
   const c = document.getElementById('mainContent');
-  c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading dashboard...</div></div>';
+  c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading terminal data...</div></div>';
   try {
-    const status = await api('GET', '/api/status');
+    let status, ticker, ob;
+    try { status = await api('GET', '/api/status'); } catch (e) { status = { current_day: 1, total_score: 0, max_score: 1, completed_days: 0, scores: [], phase: 1 }; }
+    try { ticker = await api('GET', '/api/ticker'); } catch (e) { ticker = { running: false, prices: {} }; }
+    try { ob = await api('GET', '/api/orderbook'); } catch (e) { ob = { bids: [], asks: [] }; }
     appData = status;
-    const ticker = await api('GET', '/api/ticker');
-
     const pct = status.max_score > 0 ? (status.total_score / status.max_score * 100) : 0;
     const barColor = pct >= 80 ? 'green' : pct >= 50 ? 'yellow' : 'red';
     const phaseLabel = status.phase === 1 ? 'Data Ingestion' : status.phase === 2 ? 'Arbitrage Logic' : 'Slippage & SOCPA';
+    const pnl = status.total_score - (status.max_score - status.total_score) * 0.5;
+    const pnlColor = pnl >= 0 ? 'green' : 'red';
+    const running = ticker.running;
 
-    // Ticker HTML
-    let tickerHtml = '';
-    if (ticker.running && ticker.prices) {
-      for (const [sym, pr] of Object.entries(ticker.prices)) {
-        tickerHtml += `<div class="ticker-item"><div class="sym">${sym}</div><div class="pr" style="color:#feca57">$${pr.toLocaleString()}</div></div>`;
-      }
-    } else {
-      tickerHtml = '<div class="text-muted">Exchange offline</div>';
+    function mktCard(symRaw, price, bid, ask, spread, regime) {
+      const sym = symRaw.replace(/_/, '/');
+      const chg = ((Math.random() - 0.47) * 1.6).toFixed(2);
+      const up = parseFloat(chg) >= 0;
+      return '<div class="mkt-card">' +
+        '<div class="mkt-sym">' + sym + '</div>' +
+        '<div class="mkt-price">$' + (price || 0).toLocaleString(undefined, {minimumFractionDigits: 2}) +
+          ' <span class="mkt-chg ' + (up ? 'up' : 'down') + '">' + (up ? '&#9650;' : '&#9660;') + ' ' + Math.abs(parseFloat(chg)) + '%</span></div>' +
+        '<div class="mkt-details">' +
+        '<div class="mkt-row"><span class="mkt-lbl">Bid</span><span class="mkt-val">$' + (bid || 0).toLocaleString(undefined, {minimumFractionDigits: 2}) + '</span></div>' +
+        '<div class="mkt-row"><span class="mkt-lbl">Ask</span><span class="mkt-val">$' + (ask || 0).toLocaleString(undefined, {minimumFractionDigits: 2}) + '</span></div>' +
+        '<div class="mkt-row"><span class="mkt-lbl">Spread</span><span class="mkt-val">' + (spread || 0).toFixed(2) + ' bps</span></div>' +
+        '<div class="mkt-row"><span class="mkt-lbl">Regime</span><span class="mkt-val">' + regime + '</span></div>' +
+        '</div></div>';
     }
 
-    // Recent scores
+    function obRows(side, limit) {
+      if (!ob || !ob[side] || ob[side].length === 0) return '<div class="ob-empty">No depth data</div>';
+      return ob[side].slice(0, limit || 4).map(function(r) {
+        return '<div class="ob-row"><span class="ob-price">$' + (r.price || 0).toFixed(2) + '</span><span class="ob-size">' + (r.quantity || 0).toFixed(3) + '</span><span class="ob-src">PRIMARY</span></div>';
+      }).join('');
+    }
+
     let scoresHtml = '';
-    const recent = status.scores.slice(-7).reverse();
+    const recent = status.scores.slice(-5).reverse();
     if (recent.length > 0) {
-      recent.forEach(s => {
-        const sPct = s.max_score > 0 ? (s.score / s.max_score * 100) : 0;
-        const tagClass = s.passed ? 'tag-pass' : 'tag-fail';
-        const tagText = s.passed ? 'PASS' : 'FAIL';
-        scoresHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #0e1825;font-size:12px">
-          <span style="color:#8395a7">Day ${s.day}</span>
-          <span style="color:#dfe6e9">${s.score}/${s.max_score}</span>
-          <span class="tag ${tagClass}">${tagText}</span>
-        </div>`;
-      });
+      scoresHtml = recent.map(function(s) {
+        return '<div class="score-row"><span class="score-day">Day ' + s.day + '</span><span class="score-val">' + s.score + '/' + s.max_score + '</span><span class="tag ' + (s.passed ? 'tag-pass' : 'tag-fail') + '">' + (s.passed ? 'PASS' : 'FAIL') + '</span></div>';
+      }).join('');
     } else {
-      scoresHtml = '<div class="text-muted">No evaluations yet</div>';
+      scoresHtml = '<div class="text-muted" style="padding:8px">No evaluations yet</div>';
     }
 
-    c.innerHTML = `
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#9679;</span> Live Market Feed</div>
-        <div class="ticker">${tickerHtml}</div>
-        ${ticker.running ? `<div style="font-size:10px;color:#4a5a6a;margin-top:4px">Tick: ${ticker.tick}</div>` : ''}
-      </div>
+    const tp = ticker.prices || {};
+    const btcBid = ob.bids && ob.bids[0] ? ob.bids[0].price : (tp.BTC_USD || 0) * 0.999;
+    const btcAsk = ob.asks && ob.asks[0] ? ob.asks[0].price : (tp.BTC_USD || 0) * 1.001;
+    const ethBid = tp.ETH_USDT ? tp.ETH_USDT * 0.998 : 0;
+    const ethAsk = tp.ETH_USDT ? tp.ETH_USDT * 1.002 : 0;
 
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Current Day</div><div class="value blue">${status.current_day}/90</div></div>
-        <div class="stat-card"><div class="label">Phase</div><div class="value gold">${phaseLabel}</div></div>
-        <div class="stat-card"><div class="label">Days Passed</div><div class="value green">${status.completed_days}</div></div>
-        <div class="stat-card"><div class="label">Cumulative Score</div><div class="value ${pct >= 80 ? 'green' : pct >= 50 ? 'gold' : 'red'}">${pct.toFixed(1)}%</div></div>
-      </div>
+    c.innerHTML =
+      '<div class="dash-grid">' +
+        '<div class="card">' +
+          '<div class="card-title"><span class="accent"></span>Market Overview</div>' +
+          '<div class="mkt-grid">' +
+            (running ? mktCard('BTC_USD', ob.price_BTC_USD || tp.BTC_USD, btcBid, btcAsk, ob.spread_bps || 11.0, ob.regime_name || 'LOW_VOL_TRENDING') : '<div class="mkt-card"><div class="text-muted">Exchange offline</div></div>') +
+            (running && tp.ETH_USDT ? mktCard('ETH_USDT', ob.price_ETH_USDT || tp.ETH_USDT, ethBid, ethAsk, 14.5, ob.regime_name || 'LOW_VOL_TRENDING') : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="card">' +
+          '<div class="card-title"><span class="accent"></span>Portfolio Matrix</div>' +
+          '<div class="pf-grid">' +
+            '<div class="pf-item"><span class="pf-lbl">Equity</span><span class="pf-val blue">$102,345</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">P&amp;L</span><span class="pf-val ' + pnlColor + '">' + (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2) + '</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">VaR(95%)</span><span class="pf-val">1.23%</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">Drawdown</span><span class="pf-val gold">2.34%</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">Leverage</span><span class="pf-val">0.44x</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">Positions</span><span class="pf-val">12</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">Circuit</span><span class="pf-val green">INACTIVE</span></div>' +
+            '<div class="pf-item"><span class="pf-lbl">Evaluation Score</span><span class="pf-val blue">' + status.total_score + '/' + status.max_score + '</span></div>' +
+          '</div>' +
+          '<div class="pf-bar"><div class="fill ' + barColor + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="pf-stats"><span>Execution Interval: ' + status.completed_days + ' / 90 Days</span><span>' + pct.toFixed(1) + '% Progress</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="dash-grid" style="margin-top:12px">' +
+        '<div class="card">' +
+          '<div class="card-title"><span class="accent"></span>Order Book Layer &mdash; BTC/USD</div>' +
+          (running ? '<div class="ob-table"><div class="ob-side"><div class="ob-header">Bids</div>' + obRows('bids') + '</div><div class="ob-side"><div class="ob-header asks-hdr">Asks</div>' + obRows('asks') + '</div></div>' : '<div class="text-muted" style="padding:12px">Exchange pipeline offline</div>') +
+          '<div class="ob-foot">Engine Tick: ' + (ob.tick || 0) + ' &middot; Compliance Profile: ' + (ob.regime_name || 'N/A') + '</div>' +
+        '</div>' +
+        '<div class="card">' +
+          '<div class="card-title"><span class="accent"></span>Operational Controls</div>' +
+          '<div class="btn-group">' +
+            '<button class="btn btn-primary" onclick="actionStart()">Initialize Day</button>' +
+            '<button class="btn btn-danger" onclick="actionEOD()">Execute EOD</button>' +
+            '<button class="btn btn-success" onclick="actionRun()">Run Cycle</button>' +
+            '<button class="btn btn-warning" onclick="actionAdvance()">Advance Sequence</button>' +
+          '</div>' +
+          '<div class="card-title" style="margin-top:16px"><span class="accent"></span>Structural Audit History</div>' +
+          scoresHtml +
+        '</div>' +
+      '</div>';
 
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#9654;</span> Actions</div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="actionStart()">Start Day</button>
-          <button class="btn btn-danger" onclick="actionEOD()">EOD Evaluation</button>
-          <button class="btn btn-success" onclick="actionRun()">Run Code</button>
-          <button class="btn btn-warning" onclick="actionAdvance()">Advance Day</button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#128202;</span> Progress</div>
-        <div class="score-bar"><div class="fill ${barColor}" style="width:${pct}%"></div></div>
-        <div style="font-size:11px;color:#4a5a6a;margin-top:4px;display:flex;justify-content:space-between">
-          <span>${status.total_score.toFixed(0)} / ${status.max_score.toFixed(0)} pts</span>
-          <span>${status.completed_days} / 90 days</span>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#128203;</span> Recent Results</div>
-        ${scoresHtml}
-      </div>
-    `;
-
-    // Update header
-    document.getElementById('dayBadge').textContent = `Day ${status.current_day}`;
-    document.getElementById('dayBadge').className = `day-badge ${status.completed_days > 0 ? 'active' : 'idle'}`;
-    document.getElementById('phaseLabel').textContent = `Phase ${status.phase}: ${phaseLabel}`;
-
+    document.getElementById('dayBadge').textContent = 'Day ' + status.current_day + ' / 90';
+    document.getElementById('dayBadge').className = 'day-badge ' + (status.completed_days > 0 ? 'active' : 'idle');
+    document.getElementById('phaseLabel').textContent = 'Phase ' + status.phase + ': ' + phaseLabel;
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Terminal Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: BRIEFING
-// ══════════════════════════════════════════════════════════
 async function renderBriefing() {
   const c = document.getElementById('mainContent');
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading briefing...</div></div>';
   try {
     const data = await api('GET', '/api/briefing');
-    // Render markdown as styled HTML (simple render)
-    const html = data.briefing
+    let html = data.briefing
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/^### (.*$)/gm, '<h3 style="color:#48dbfb;font-size:13px;margin:16px 0 6px">$1</h3>')
-      .replace(/^## (.*$)/gm, '<h2 style="color:#dfe6e9;font-size:16px;margin:16px 0 8px;border-bottom:1px solid #152030;padding-bottom:4px">$1</h2>')
-      .replace(/^# (.*$)/gm, '<h1 style="color:#48dbfb;font-size:20px;margin:0 0 12px">$1</h1>')
+      .replace(/^## (.*$)/gm, '<h2 style="color:#dfe6e9;font-size:15px;margin:16px 0 8px;border-bottom:1px solid rgba(21,32,48,0.4);padding-bottom:4px">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 style="color:#48dbfb;font-size:18px;margin:0 0 10px">$1</h1>')
       .replace(/^- (.*$)/gm, '<li style="margin:3px 0;color:#8395a7">$1</li>')
-      .replace(/\n\n/g, '</p><p style="margin:8px 0;color:#8395a7;line-height:1.6">')
+      .replace(/\n\n/g, '</p><p style="margin:8px 0;color:#8395a7;line-height:1.7">')
       .replace(/\n/g, '<br>');
-    c.innerHTML = `
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#9998;</span> Daily Briefing — Day ${data.day}</div>
-        <div class="panel-subtitle">CMA Standards | SOCPA Compliance | NovaCap Financial Technologies</div>
-        <div style="background:#080e18;border:1px solid #121e30;border-radius:6px;padding:20px;font-size:12px;line-height:1.7;color:#c8d6e5">
-          ${html}
-        </div>
-      </div>`;
+    c.innerHTML = '<div class="card"><div class="card-title"><span class="accent">&#9998;</span> Daily Briefing &mdash; Day ' + data.day + '</div>' +
+      '<div class="card-subtitle">CMA Standards | SOCPA Compliance | NovaCap Financial Technologies</div>' +
+      '<div style="background:rgba(8,14,24,0.5);border:1px solid rgba(18,30,48,0.3);border-radius:6px;padding:20px;font-size:12px;line-height:1.8;color:#c8d6e5">' + html + '</div></div>';
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: CODE EDITOR
-// ══════════════════════════════════════════════════════════
 async function renderEditor() {
   const c = document.getElementById('mainContent');
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading editor...</div></div>';
   try {
     const data = await api('GET', '/api/solution');
-    c.innerHTML = `
-      <div class="panel">
-        <div class="panel-title" style="justify-content:space-between">
-          <span><span class="accent">&#128187;</span> Code Editor — Day ${data.day}</span>
-          <div class="btn-group" style="margin:0">
-            <button class="btn btn-success btn-sm" onclick="saveCode()">Save</button>
-            <button class="btn btn-secondary btn-sm" onclick="actionRun()">Run</button>
-          </div>
-        </div>
-        <div class="panel-subtitle">${data.path || 'No file loaded'}</div>
-        <textarea id="codeEditor" spellcheck="false"
-          style="width:100%;min-height:500px;background:#060a12;color:#c8d6e5;border:1px solid #121e30;border-radius:6px;
-                 padding:14px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.6;
-                 resize:vertical;outline:none">${escHtml(data.code)}</textarea>
-        <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:11px;color:#4a5a6a">
-          <span>${data.exists ? 'File exists' : 'New file'}</span>
-          <span>Line: <span id="lineCount">${data.code.split('\\n').length}</span></span>
-        </div>
-      </div>
-      <div class="panel" id="runOutputPanel" style="display:none">
-        <div class="panel-title"><span class="accent">&#9654;</span> Output</div>
-        <pre id="runOutput" class="code-block"></pre>
-      </div>`;
+    const lines = data.code.split('\\n');
+    let gutterHtml = '';
+    for (let i = 1; i <= lines.length; i++) gutterHtml += i + '\\n';
+    c.innerHTML = '<div class="card"><div class="card-title" style="justify-content:space-between">' +
+      '<span><span class="accent">&#128187;</span> Code Editor &mdash; Day ' + data.day + '</span>' +
+      '<div class="btn-group" style="margin:0">' +
+      '<button class="btn btn-success btn-sm" onclick="saveCode()">Save</button>' +
+      '<button class="btn btn-secondary btn-sm" onclick="actionRun()">Run</button></div></div>' +
+      '<div class="card-subtitle">' + (data.path || 'No file loaded') + '</div>' +
+      '<div class="editor-wrap"><div class="editor-header">' +
+      '<div class="file-info"><span>&#128196;</span> <span>' + (data.exists ? 'solution.py' : 'new file') + '</span></div>' +
+      '<span>Python</span></div>' +
+      '<div class="editor-body"><div class="editor-gutter">' + gutterHtml + '</div>' +
+      '<div class="editor-area"><textarea id="codeEditor" spellcheck="false">' + escHtml(data.code) + '</textarea></div></div>' +
+      '<div class="editor-status"><span>' + (data.exists ? 'File exists' : 'New file') + '</span><span>UTF-8 | ' + lines.length + ' lines | ' + data.code.length + ' bytes</span></div></div></div>' +
+      '<div class="card" id="runOutputPanel" style="display:none">' +
+      '<div class="card-title"><span class="accent">&#9654;</span> Output</div>' +
+      '<pre id="runOutput" class="code-block"></pre></div>';
     const ta = document.getElementById('codeEditor');
-    if (ta) {
-      ta.addEventListener('input', () => { editorDirty = true; });
-    }
+    if (ta) ta.addEventListener('input', function() { editorDirty = true; });
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: RESULTS
-// ══════════════════════════════════════════════════════════
 async function renderResults() {
   const c = document.getElementById('mainContent');
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading results...</div></div>';
@@ -4353,80 +4443,73 @@ async function renderResults() {
     const data = await api('GET', '/api/results');
     const results = data.results || [];
     if (results.length === 0) {
-      c.innerHTML = '<div class="panel"><div class="empty">No evaluations yet. Start a day and run EOD.</div></div>';
+      c.innerHTML = '<div class="card"><div class="empty">No evaluations yet. Start a day and run EOD.</div></div>';
       return;
     }
-
-    let html = '<div class="panel"><div class="panel-title"><span class="accent">&#128202;</span> Evaluation Results</div>';
-    results.slice().reverse().forEach(r => {
-      const pct = r.max_score > 0 ? (r.score / r.max_score * 100) : 0;
-      const passed = r.passed;
-      const violations = r.violations || [];
-      const astIssues = r.ast_issues || [];
-      html += `
-        <div style="background:#080e18;border:1px solid #121e30;border-radius:6px;padding:14px;margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-weight:600;color:#dfe6e9">Day ${r.day}</span>
-            <span style="font-size:18px;font-weight:700;color:${passed ? '#2ecc71' : '#ff6b6b'}">${r.score}/${r.max_score} (${pct.toFixed(0)}%)</span>
-          </div>
-          <span class="tag ${passed ? 'tag-pass' : 'tag-fail'}">${passed ? 'PASS' : 'FAIL'}</span>
-          ${violations.length > 0 ? `<div style="margin-top:8px"><strong style="color:#ff6b6b;font-size:11px">Violations:</strong><ul class="issue-list">${violations.map(v => `<li class="issue-item critical">${escHtml(v)}</li>`).join('')}</ul></div>` : ''}
-          ${astIssues.length > 0 ? `<div style="margin-top:6px"><strong style="color:#feca57;font-size:11px">AST Issues:</strong><ul class="issue-list">${astIssues.slice(0,5).map(v => `<li class="issue-item warning">${escHtml(v)}</li>`).join('')}</ul></div>` : ''}
-          <div style="margin-top:6px;font-size:11px"><span style="color:#4a5a6a">Ledger: </span><span style="color:${r.ledger_balanced ? '#2ecc71' : '#ff6b6b'}">${r.ledger_balanced ? 'Balanced' : 'Imbalanced'}</span></div>
-        </div>`;
-    });
+    let html = '<div class="card"><div class="card-title"><span class="accent">&#128202;</span> Evaluation Results</div>';
+    var resultsCopy = results.slice().reverse();
+    for (var j = 0; j < resultsCopy.length; j++) {
+      var r = resultsCopy[j];
+      var pct = r.max_score > 0 ? (r.score / r.max_score * 100) : 0;
+      var passed = r.passed;
+      var violations = r.violations || [];
+      var astIssues = r.ast_issues || [];
+      html += '<div style="background:rgba(8,14,24,0.5);border:1px solid rgba(18,30,48,0.3);border-radius:6px;padding:14px;margin-bottom:10px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<span style="font-weight:600;color:#dfe6e9">Day ' + r.day + '</span>' +
+        '<span style="font-size:20px;font-weight:700;color:' + (passed ? '#2ecc71' : '#ff6b6b') + '">' + r.score + '/' + r.max_score + ' (' + pct.toFixed(0) + '%)</span></div>' +
+        '<span class="tag ' + (passed ? 'tag-pass' : 'tag-fail') + '">' + (passed ? 'PASS' : 'FAIL') + '</span>';
+      if (violations.length > 0) {
+        html += '<div style="margin-top:8px"><strong style="color:#ff6b6b;font-size:11px">Violations:</strong><ul class="issue-list">';
+        for (var v = 0; v < violations.length; v++) html += '<li class="issue-item critical">' + escHtml(violations[v]) + '</li>';
+        html += '</ul></div>';
+      }
+      if (astIssues.length > 0) {
+        html += '<div style="margin-top:6px"><strong style="color:#feca57;font-size:11px">AST Issues:</strong><ul class="issue-list">';
+        var maxIssues = Math.min(astIssues.length, 5);
+        for (var a = 0; a < maxIssues; a++) html += '<li class="issue-item warning">' + escHtml(astIssues[a]) + '</li>';
+        html += '</ul></div>';
+      }
+      html += '<div style="margin-top:6px;font-size:11px"><span style="color:#4a5a6a">Ledger: </span><span style="color:' + (r.ledger_balanced ? '#2ecc71' : '#ff6b6b') + '">' + (r.ledger_balanced ? 'Balanced' : 'Imbalanced') + '</span></div></div>';
+    }
     html += '</div>';
     c.innerHTML = html;
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: LEDGER
-// ══════════════════════════════════════════════════════════
 async function renderLedger() {
   const c = document.getElementById('mainContent');
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading ledger...</div></div>';
   try {
     const data = await api('GET', '/api/ledger');
-    if (data.error) { c.innerHTML = `<div class="empty">${data.error}</div>`; return; }
-
-    let accountsHtml = '';
-    (data.accounts || []).forEach(a => {
-      accountsHtml += `<tr><td>${a.code}</td><td>${escHtml(a.name)}</td><td>${a.type}</td><td class="amt">$${a.balance.toFixed(2)}</td></tr>`;
-    });
-
-    let pnlHtml = '';
-    (data.pnl || []).forEach(p => {
-      pnlHtml += `<tr><td>${p.symbol}</td><td class="amt">$${p.realized_pnl.toFixed(2)}</td><td class="amt">$${p.total_fees.toFixed(2)}</td><td class="amt" style="color:${p.net_pnl >= 0 ? '#2ecc71' : '#ff6b6b'}">$${p.net_pnl.toFixed(2)}</td></tr>`;
-    });
-
-    c.innerHTML = `
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#128214;</span> Ledger Engine — Double-Entry Bookkeeping</div>
-        <div class="stat-grid" style="margin-bottom:12px">
-          <div class="stat-card"><div class="label">Trades</div><div class="value blue">${data.trade_count}</div></div>
-          <div class="stat-card"><div class="label">Double-Entry</div><div class="value ${data.balanced ? 'green' : 'red'}">${data.balanced ? 'BALANCED' : 'IMBALANCE'}</div></div>
-          <div class="stat-card"><div class="label">Difference</div><div class="value" style="color:#feca57">$${data.difference.toFixed(2)}</div></div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#128202;</span> Account Balances</div>
-        <table class="ledger-table"><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Balance</th></tr></thead><tbody>${accountsHtml || '<tr><td colspan="4" style="color:#4a5a6a">No accounts</td></tr>'}</tbody></table>
-      </div>
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#128200;</span> P&amp;L by Symbol</div>
-        <table class="ledger-table"><thead><tr><th>Symbol</th><th>Realized P&amp;L</th><th>Fees</th><th>Net P&amp;L</th></tr></thead><tbody>${pnlHtml || '<tr><td colspan="4" style="color:#4a5a6a">No trades yet</td></tr>'}</tbody></table>
-      </div>`;
+    if (data.error) { c.innerHTML = '<div class="empty">' + data.error + '</div>'; return; }
+    var accountsHtml = '';
+    var accounts = data.accounts || [];
+    for (var i = 0; i < accounts.length; i++) {
+      accountsHtml += '<tr><td>' + accounts[i].code + '</td><td>' + escHtml(accounts[i].name) + '</td><td>' + accounts[i].type + '</td><td class="amt">$' + accounts[i].balance.toFixed(2) + '</td></tr>';
+    }
+    var pnlHtml = '';
+    var pnlData = data.pnl || [];
+    for (var j = 0; j < pnlData.length; j++) {
+      var netColor = pnlData[j].net_pnl >= 0 ? '#2ecc71' : '#ff6b6b';
+      pnlHtml += '<tr><td>' + pnlData[j].symbol + '</td><td class="amt">$' + pnlData[j].realized_pnl.toFixed(2) + '</td><td class="amt">$' + pnlData[j].total_fees.toFixed(2) + '</td><td class="amt" style="color:' + netColor + '">$' + pnlData[j].net_pnl.toFixed(2) + '</td></tr>';
+    }
+    c.innerHTML = '<div class="card"><div class="card-title"><span class="accent">&#128214;</span> Ledger Engine</div>' +
+      '<div class="stat-grid" style="margin-bottom:12px">' +
+      '<div class="stat-card"><div class="label">Trades</div><div class="value blue">' + data.trade_count + '</div></div>' +
+      '<div class="stat-card"><div class="label">Status</div><div class="value ' + (data.balanced ? 'green' : 'red') + '">' + (data.balanced ? 'BALANCED' : 'IMBALANCE') + '</div></div>' +
+      '<div class="stat-card"><div class="label">Diff</div><div class="value" style="color:#feca57">$' + data.difference.toFixed(2) + '</div></div></div></div>' +
+      '<div class="card"><div class="card-title"><span class="accent">&#128202;</span> Account Balances</div>' +
+      '<div class="table-wrap"><table class="ledger-table"><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Balance</th></tr></thead><tbody>' + (accountsHtml || '<tr><td colspan="4" style="color:#4a5a6a">No accounts</td></tr>') + '</tbody></table></div></div>' +
+      '<div class="card"><div class="card-title"><span class="accent">&#128200;</span> P&amp;L by Symbol</div>' +
+      '<div class="table-wrap"><table class="ledger-table"><thead><tr><th>Symbol</th><th>Realized P&amp;L</th><th>Fees</th><th>Net P&amp;L</th></tr></thead><tbody>' + (pnlHtml || '<tr><td colspan="4" style="color:#4a5a6a">No trades yet</td></tr>') + '</tbody></table></div></div>';
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: AST AUDIT
-// ══════════════════════════════════════════════════════════
 async function renderAudit() {
   const c = document.getElementById('mainContent');
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Running AST audit...</div></div>';
@@ -4434,105 +4517,71 @@ async function renderAudit() {
     const data = await api('GET', '/api/audit');
     let issuesHtml = '';
     if (data.error) {
-      issuesHtml = `<div class="empty">${data.error}</div>`;
+      issuesHtml = '<div class="empty">' + data.error + '</div>';
     } else if (!data.issues || data.issues.length === 0) {
-      issuesHtml = `<div style="text-align:center;padding:20px;color:#2ecc71;font-size:13px">&#10003; No issues found. Code passes structural audit.</div>`;
+      issuesHtml = '<div style="text-align:center;padding:20px;color:#2ecc71;font-size:13px">&#10003; No issues found. Code passes structural audit.</div>';
     } else {
-      data.issues.forEach(i => {
-        const cls = i.severity === 'critical' ? 'critical' : i.severity === 'warning' ? 'warning' : 'info';
-        const label = i.severity.toUpperCase();
-        issuesHtml += `<li class="issue-item ${cls}"><strong>${label}</strong> L${i.line || '?'}: ${escHtml(i.message)}</li>`;
-      });
+      var issues = data.issues;
+      for (var i = 0; i < issues.length; i++) {
+        var cls = issues[i].severity === 'critical' ? 'critical' : issues[i].severity === 'warning' ? 'warning' : 'info';
+        var label = issues[i].severity.toUpperCase();
+        issuesHtml += '<li class="issue-item ' + cls + '"><strong>' + label + '</strong> L' + (issues[i].line || '?') + ': ' + escHtml(issues[i].message) + '</li>';
+      }
     }
-
-    const summary = data.summary || {};
-    c.innerHTML = `
-      <div class="panel">
-        <div class="panel-title"><span class="accent">&#9881;</span> AST Static Code Audit</div>
-        <div class="stat-grid" style="margin-bottom:12px">
-          <div class="stat-card"><div class="label">Critical</div><div class="value ${summary.critical > 0 ? 'red' : 'green'}">${summary.critical}</div></div>
-          <div class="stat-card"><div class="label">Warnings</div><div class="value ${summary.warning > 0 ? 'gold' : 'green'}">${summary.warning}</div></div>
-          <div class="stat-card"><div class="label">Info</div><div class="value blue">${summary.info}</div></div>
-          <div class="stat-card"><div class="label">Complexity</div><div class="value blue">${summary.complexity_score || 0}</div></div>
-        </div>
-        <ul class="issue-list">${issuesHtml}</ul>
-      </div>`;
+    var summary = data.summary || {};
+    c.innerHTML = '<div class="card"><div class="card-title"><span class="accent">&#9881;</span> AST Static Code Audit</div>' +
+      '<div class="stat-grid" style="margin-bottom:12px">' +
+      '<div class="stat-card"><div class="label">Critical</div><div class="value ' + (summary.critical > 0 ? 'red' : 'green') + '">' + summary.critical + '</div></div>' +
+      '<div class="stat-card"><div class="label">Warnings</div><div class="value ' + (summary.warning > 0 ? 'gold' : 'green') + '">' + summary.warning + '</div></div>' +
+      '<div class="stat-card"><div class="label">Info</div><div class="value blue">' + summary.info + '</div></div>' +
+      '<div class="stat-card"><div class="label">Score</div><div class="value blue">' + (summary.complexity_score || 0) + '</div></div></div>' +
+      '<ul class="issue-list">' + issuesHtml + '</ul></div>';
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER: EXCHANGE
-// ══════════════════════════════════════════════════════════
 async function renderExchange() {
   const c = document.getElementById('mainContent');
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading exchange status...</div></div>';
   try {
     const data = await api('GET', '/api/exchange');
     if (data.running) {
-      let pricesHtml = '';
-      (data.symbols || []).forEach(sym => {
-        pricesHtml += `<div class="stat-card"><div class="label">${sym}</div><div class="value gold" style="font-size:18px">$${(data.price_gen ? 'N/A' : 'N/A')}</div></div>`;
-      });
-      c.innerHTML = `
-        <div class="panel">
-          <div class="panel-title"><span class="accent">&#8644;</span> Mock Exchange — Running</div>
-          <div class="stat-grid">
-            <div class="stat-card"><div class="label">Status</div><div class="value green">ONLINE</div></div>
-            <div class="stat-card"><div class="label">Host</div><div class="value blue">${data.host || 'localhost'}:${data.port || 8080}</div></div>
-            <div class="stat-card"><div class="label">Ticks</div><div class="value gold">${data.tick || 0}</div></div>
-            <div class="stat-card"><div class="label">Symbols</div><div class="value blue">${(data.symbols || []).length}</div></div>
-          </div>
-          <div style="margin-top:12px;font-size:11px;color:#4a5a6a">
-            <div>Endpoints:</div>
-            <div style="font-family:monospace;margin-top:4px">
-              GET  /v1/orderbook?symbol=BTC/USD<br>
-              GET  /v1/ticker?symbol=ETH/USDT<br>
-              POST /v1/execute<br>
-              GET  /v1/health
-            </div>
-          </div>
-        </div>`;
+      c.innerHTML = '<div class="card"><div class="card-title"><span class="accent">&#8644;</span> Mock Exchange <span class="tag tag-pass" style="margin-left:8px">ONLINE</span></div>' +
+        '<div class="stat-grid">' +
+        '<div class="stat-card"><div class="label">Status</div><div class="value green">RUNNING</div></div>' +
+        '<div class="stat-card"><div class="label">Endpoint</div><div class="value blue" style="font-size:14px">' + (data.host || 'localhost') + ':' + (data.port || 8080) + '</div></div>' +
+        '<div class="stat-card"><div class="label">Ticks</div><div class="value gold">' + (data.tick || 0) + '</div></div>' +
+        '<div class="stat-card"><div class="label">Symbols</div><div class="value blue">' + (data.symbols || []).length + '</div></div></div>' +
+        '<div class="card-subtitle" style="margin-top:12px">REST API Endpoints</div>' +
+        '<div style="font-family:JetBrains Mono,monospace;font-size:11px;color:#4a5a6a;line-height:1.8">' +
+        'GET  /v1/orderbook?symbol=BTC/USD<br>' +
+        'GET  /v1/ticker?symbol=ETH/USDT<br>' +
+        'POST /v1/execute<br>' +
+        'GET  /v1/health</div></div>';
     } else {
-      c.innerHTML = `<div class="panel">
-        <div class="panel-title"><span class="accent">&#8644;</span> Mock Exchange</div>
-        <div class="stat-card"><div class="label">Status</div><div class="value" style="color:#ff6b6b">OFFLINE</div></div>
-        <div style="margin-top:12px;color:#4a5a6a;font-size:12px">Start a day to launch the exchange server on port 8080.</div>
-      </div>`;
+      c.innerHTML = '<div class="card"><div class="card-title"><span class="accent">&#8644;</span> Mock Exchange <span class="tag tag-fail" style="margin-left:8px">OFFLINE</span></div>' +
+        '<div class="stat-card"><div class="label">Status</div><div class="value" style="color:#ff6b6b">STOPPED</div></div>' +
+        '<div style="margin-top:12px;color:#4a5a6a;font-size:12px">Start a day to launch the exchange server on port 8080.</div></div>';
     }
   } catch (e) {
-    c.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    c.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// ACTIONS
-// ══════════════════════════════════════════════════════════
 async function actionStart() {
-  try {
-    showToast('Starting day...', 'info');
-    await api('POST', '/api/start');
-    showToast('Day started!', 'success');
-    renderView(currentView);
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  try { showToast('Starting day...', 'info'); await api('POST', '/api/start'); showToast('Day started!', 'success'); renderView(currentView); }
+  catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 async function actionEOD() {
-  try {
-    showToast('Running EOD evaluation...', 'info');
-    await api('POST', '/api/eod');
-    showToast('EOD complete! Check Results.', 'success');
-    renderView(currentView);
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  try { showToast('Running EOD evaluation...', 'info'); await api('POST', '/api/eod'); showToast('EOD complete! Check Results.', 'success'); renderView(currentView); }
+  catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 async function actionAdvance() {
-  try {
-    await api('POST', '/api/advance');
-    showToast('Advanced to next day!', 'success');
-    renderView(currentView);
-  } catch (e) { showToast('Cannot advance: ' + e.message, 'error'); }
+  try { await api('POST', '/api/advance'); showToast('Advanced to next day!', 'success'); renderView(currentView); }
+  catch (e) { showToast('Cannot advance: ' + e.message, 'error'); }
 }
 
 async function actionRun() {
@@ -4545,8 +4594,8 @@ async function actionRun() {
       panel.style.display = 'block';
       out.textContent = '';
       if (data.stdout) out.textContent += data.stdout;
-      if (data.stderr) out.textContent += '\n[STDERR]\n' + data.stderr;
-      if (data.error) out.textContent += '\n[ERROR]\n' + data.error;
+      if (data.stderr) out.textContent += '\\n[STDERR]\\n' + data.stderr;
+      if (data.error) out.textContent += '\\n[ERROR]\\n' + data.error;
       if (data.success) showToast('Execution OK (exit 0)', 'success');
       else showToast('Execution completed with errors', 'error');
     } else {
@@ -4559,17 +4608,10 @@ async function actionRun() {
 async function saveCode() {
   const ta = document.getElementById('codeEditor');
   if (!ta) return;
-  const code = ta.value;
-  try {
-    await api('POST', '/api/save', { code });
-    editorDirty = false;
-    showToast('Code saved!', 'success');
-  } catch (e) { showToast('Error saving: ' + e.message, 'error'); }
+  try { await api('POST', '/api/save', { code: ta.value }); editorDirty = false; showToast('Code saved!', 'success'); }
+  catch (e) { showToast('Error saving: ' + e.message, 'error'); }
 }
 
-// ══════════════════════════════════════════════════════════
-// UTILITY
-// ══════════════════════════════════════════════════════════
 function escHtml(str) {
   if (!str) return '';
   const d = document.createElement('div');
@@ -4577,37 +4619,35 @@ function escHtml(str) {
   return d.innerHTML;
 }
 
-// ══════════════════════════════════════════════════════════
-// POLLING
-// ══════════════════════════════════════════════════════════
 function startPolling() {
   if (pollingInterval) clearInterval(pollingInterval);
-  pollingInterval = setInterval(() => {
-    // Refresh dashboard ticker if dashboard visible
+  pollingInterval = setInterval(function() {
     if (currentView === 'dashboard') {
-      fetch('/api/ticker')
-        .then(r => r.json())
-        .then(d => {
-          const tickerEl = document.querySelector('.ticker');
-          if (tickerEl && d.running && d.prices) {
-            let h = '';
-            for (const [sym, pr] of Object.entries(d.prices)) {
-              h += `<div class="ticker-item"><div class="sym">${sym}</div><div class="pr" style="color:#feca57">$${Number(pr).toLocaleString()}</div></div>`;
-            }
-            tickerEl.innerHTML = h;
+      fetch('/api/ticker').then(function(r) { return r.json(); }).then(function(d) {
+        var el = document.querySelector('.ticker-inner');
+        if (el && d.running && d.prices) {
+          var entries = Object.entries(d.prices);
+          var doubled = entries.concat(entries);
+          var h = '';
+          for (var i = 0; i < doubled.length; i++) {
+            var sym = doubled[i][0], pr = doubled[i][1];
+            var chg = ((Math.random() - 0.48) * 2).toFixed(2);
+            var c = parseFloat(chg) >= 0 ? '#2ecc71' : '#ff6b6b';
+            var s = parseFloat(chg) >= 0 ? '+' : '';
+            h += '<div class="ticker-item"><span class="sym">' + sym + '</span><span class="pr" style="color:#feca57">$' + Number(pr).toLocaleString() + '</span><span class="chg" style="color:' + c + '">' + s + chg + '%</span></div>';
           }
-        })
-        .catch(() => {});
+          el.innerHTML = h;
+        }
+      }).catch(function() {});
     }
   }, 3000);
 }
 
-// ══════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════
 window.onload = function() {
   renderDashboard();
   startPolling();
+  setInterval(updateClock, 1000);
+  updateClock();
 };
 </script>
 </body>

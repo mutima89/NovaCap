@@ -167,11 +167,28 @@ python arbitrage_academy.py
 
 ## 📸 Screenshots
 
-### 🖥️ CLI Welcome
+> **View the live dashboard**: Start NovaCap (`python arbitrage_academy.py`) and open [http://localhost:8081](http://localhost:8081) in your browser. A standalone HTML preview is also available at [`docs/dashboard-preview.html`](docs/dashboard-preview.html).
+
+### 🖥️ Web Dashboard — Terminal View
+
+The premium browser-based dashboard at `localhost:8081` features:
+
+- **Live ticker tape** — scrolling price updates for BTC/USD and ETH/USDT
+- **Market panel** — regime, spread, bid/ask with animated glass-morphism cards
+- **Order book** — depth table with price, size, and source
+- **Portfolio summary** — P&L, equity, VaR, leverage, circuit breaker status
+- **Code editor** — line-numbered textarea for writing strategies inline
+- **Navigation tabs** — Market, Strategy, Order Book, Portfolio, Log, Settings
+- **Animated background** — grid animation with depth effect
+- **Loading splash** — animated sequencer on page load
+- **Real-time clock** — live HH:MM:SS in the header
+- **Dark theme** — professional trading terminal aesthetic with JetBrains Mono font
+
+### 🖥️ CLI — Primary Interface
 
 ```
 NOVACAP ARBITRAGE PROTOCOL v2.0.0
-══════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════
 
   PRINCIPAL STRATEGIST: Welcome to the most demanding
   trading desk in the region.
@@ -182,9 +199,7 @@ NOVACAP ARBITRAGE PROTOCOL v2.0.0
 strategist>
 ```
 
-<br>
-
-### 📋 Help Screen
+### 📋 CLI Help
 
 ```
 strategist> help
@@ -199,9 +214,7 @@ Undocumented commands:
 cancel_order  orders  quote  ticker
 ```
 
-<br>
-
-### 📊 Risk Report
+### 📊 CLI Risk Report
 
 ```
 strategist> risk
@@ -216,9 +229,7 @@ Correlation: BTC/USD: +0.723  |  ETH/USDT: +0.541
 Positions: 12 trades today
 ```
 
-<br>
-
-### 📈 Order Book Snapshot
+### 📈 Order Book API
 
 ```json
 GET /v1/orderbook?symbol=BTC/USD
@@ -240,9 +251,7 @@ GET /v1/orderbook?symbol=BTC/USD
 }
 ```
 
-<br>
-
-### 🩺 Health Check
+### 🩺 Health Check API
 
 ```json
 GET /v1/health
@@ -258,7 +267,10 @@ GET /v1/health
 }
 ```
 
+> **Note**: For full-resolution screenshots, open `http://localhost:8081` in your browser after starting NovaCap, or open `docs/dashboard-preview.html` for a standalone preview of the dashboard HTML.
+
 ---
+
 
 ## 🏛️ Architecture
 
