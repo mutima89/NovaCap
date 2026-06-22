@@ -165,6 +165,101 @@ python arbitrage_academy.py
 
 ---
 
+## 📸 Screenshots
+
+### 🖥️ CLI Welcome
+
+```
+NOVACAP ARBITRAGE PROTOCOL v2.0.0
+══════════════════════════════════════════════════════════
+
+  PRINCIPAL STRATEGIST: Welcome to the most demanding
+  trading desk in the region.
+
+  DIRECTIVE: Type "start" to begin Day 1.
+  Type "help" for available commands.
+
+strategist>
+```
+
+<br>
+
+### 📋 Help Screen
+
+```
+strategist> help
+
+Documented commands (type help <topic>):
+========================================
+advance      backtest     eod          help        risk
+risk_reset   run          start        reset       status
+
+Undocumented commands:
+======================
+cancel_order  orders  quote  ticker
+```
+
+<br>
+
+### 📊 Risk Report
+
+```
+strategist> risk
+
+==================================================
+RISK REPORT — Day 15
+Circuit Breaker: Inactive
+Equity: $102,345.67  |  Max DD: 2.34%
+VaR(95%): 1.23%  |  CVaR(95%): 2.45%
+Gross Exposure: $45,000.00  |  Leverage: 0.44x (max 2.0x)
+Correlation: BTC/USD: +0.723  |  ETH/USDT: +0.541
+Positions: 12 trades today
+```
+
+<br>
+
+### 📈 Order Book Snapshot
+
+```json
+GET /v1/orderbook?symbol=BTC/USD
+
+{
+  "symbol": "BTC/USD",
+  "tick": 1042,
+  "regime": 0,
+  "regime_name": "LOW_VOL_TRENDING",
+  "spread_bps": 1.24,
+  "bids": [
+    {"price": 69245.12, "size": 0.85, "source": "limit_book"},
+    {"price": 69230.00, "size": 0.50, "source": "limit_book"}
+  ],
+  "asks": [
+    {"price": 69253.78, "size": 1.20, "source": "limit_book"},
+    {"price": 69270.00, "size": 0.75, "source": "limit_book"}
+  ]
+}
+```
+
+<br>
+
+### 🩺 Health Check
+
+```json
+GET /v1/health
+
+{
+  "status": "operational",
+  "version": "2.0.0",
+  "uptime_seconds": 42,
+  "active_orders": 3,
+  "limit_orders": 3,
+  "total_trades": 127,
+  "current_regime": 0
+}
+```
+
+---
+
 ## 🏛️ Architecture
 
 ```
