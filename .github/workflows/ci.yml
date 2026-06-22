@@ -23,255 +23,245 @@ jobs:
 
     - name: Verify zero external dependencies
       run: |
-        python -c "import sys; assert 'pip' not in sys.modules, 'pip should not be imported'"
+        python -c "import sys; assert 'pip' not in sys.modules"
         echo "Zero-dependency check passed"
 
-    - name: Validate AST parser (arbitrage_academy.py)
+    - name: Validate AST parser
       run: |
         python -c "
-import ast
-with open('arbitrage_academy.py') as f:
-    tree = ast.parse(f.read())
-classes = [n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
-print(f'Classes found: {len(classes)}')
-for c in classes:
-    print(f'  - {c}')
-"
+        import ast
+        with open('arbitrage_academy.py') as f:
+            tree = ast.parse(f.read())
+        classes = [n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
+        print('Classes found: %d' % len(classes))
+        for c in classes:
+            print('  - ' + c)
+        "
 
     - name: Validate mock exchange starts
       run: |
         python -c "
-import threading, time, json, urllib.request
-from arbitrage_academy import MockExchangeServer, MockPriceGenerator
-
-pg = MockPriceGenerator(seed=42)
-server = MockExchangeServer()
-if not server.start():
-    exit(1)
-
-time.sleep(0.5)
-
-try:
-    with urllib.request.urlopen('http://localhost:8080/v1/health') as resp:
-        data = json.loads(resp.read())
-        assert data['status'] == 'operational'
-        print(f'Health check OK: {data}')
-finally:
-    server.stop()
-print('Mock exchange validation passed')
-"
+        import threading, time, json, urllib.request
+        from arbitrage_academy import MockExchangeServer, MockPriceGenerator
+        pg = MockPriceGenerator(seed=42)
+        server = MockExchangeServer()
+        if not server.start():
+            exit(1)
+        time.sleep(0.5)
+        try:
+            with urllib.request.urlopen('http://localhost:8080/v1/health') as resp:
+                data = json.loads(resp.read())
+                assert data['status'] == 'operational'
+                print('Health check OK: ' + str(data))
+        finally:
+            server.stop()
+        print('Mock exchange validation passed')
+        "
 
     - name: Validate regime switching
       run: |
         python -c "
-from arbitrage_academy import MockPriceGenerator, REGIMES
-
-pg = MockPriceGenerator(seed=42)
-regimes_seen = set()
-for _ in range(500):
-    pg.update()
-    regimes_seen.add(pg.current_regime)
-print(f'Regimes visited: {regimes_seen}')
-assert len(regimes_seen) > 1, 'Regime switching did not activate'
-print('Regime switching validation passed')
-"
+        from arbitrage_academy import MockPriceGenerator, REGIMES
+        pg = MockPriceGenerator(seed=42)
+        regimes_seen = set()
+        for _ in range(500):
+            pg.update()
+            regimes_seen.add(pg.current_regime)
+        print('Regimes visited: ' + str(regimes_seen))
+        assert len(regimes_seen) > 1, 'Regime switching did not activate'
+        print('Regime switching validation passed')
+        "
 
     - name: Validate limit order book
       run: |
         python -c "
-from arbitrage_academy import OrderBookManager
-obm = OrderBookManager()
-oid1 = obm.add_limit_order({'symbol':'BTC/USD','side':'sell','price':70000,'quantity':1.0})
-oid2 = obm.add_limit_order({'symbol':'BTC/USD','side':'buy','price':69000,'quantity':0.5})
-result = obm.match_market_order('BTC/USD','buy',0.3)
-print(f'Market match result: {result}')
-assert result['filled_qty'] > 0, 'Order matching failed'
-print('Order book management validation passed')
-"
+        from arbitrage_academy import OrderBookManager
+        obm = OrderBookManager()
+        oid1 = obm.add_limit_order({'symbol':'BTC/USD','side':'sell','price':70000,'quantity':1.0})
+        oid2 = obm.add_limit_order({'symbol':'BTC/USD','side':'buy','price':69000,'quantity':0.5})
+        result = obm.match_market_order('BTC/USD','buy',0.3)
+        print('Market match result: ' + str(result))
+        assert result['filled_qty'] > 0, 'Order matching failed'
+        print('Order book management validation passed')
+        "
 
     - name: Validate CodeAuditor
       run: |
         python -c "
-from arbitrage_academy import CodeAuditor
-auditor = CodeAuditor()
-bad_code = 'x = eval(\"1+1\")\\ndef f():\\n    while True:\\n        pass'
-issues = auditor.audit(bad_code)
-print(f'Issues found: {len(issues)}')
-for i in issues:
-    print(f'  [{i[\"severity\"]}] {i[\"message\"]}')
-assert any('eval' in i['message'].lower() for i in issues), 'Should flag eval()'
-assert any('infinite' in i['message'].lower() for i in issues), 'Should flag infinite loop'
-print('CodeAuditor validation passed')
-"
+        from arbitrage_academy import CodeAuditor
+        auditor = CodeAuditor()
+        bad_code = 'x = eval(\"1+1\")\\ndef f():\\n    while True:\\n        pass'
+        issues = auditor.audit(bad_code)
+        print('Issues found: %d' % len(issues))
+        for i in issues:
+            sev = i['severity']; msg = i['message']
+            print('  [%s] %s' % (sev, msg))
+        assert any('eval' in i['message'].lower() for i in issues), 'Should flag eval()'
+        assert any('infinite' in i['message'].lower() for i in issues), 'Should flag infinite loop'
+        print('CodeAuditor validation passed')
+        "
 
     - name: Validate LedgerEngine
       run: |
         python -c "
-import os, sqlite3
-from arbitrage_academy import LedgerEngine
-db = '__test_ledger.db'
-ledger = LedgerEngine(db)
-ledger.connect()
-ok = ledger.record_trade('T0001', 1, 'BTC/USD', 'buy', 50000, 1.0, 50000, 50.0)
-assert ok, 'Trade recording failed'
-trades = ledger.get_trades(1)
-assert len(trades) == 1, f'Expected 1 trade, got {len(trades)}'
-balanced, diff = ledger.verify_double_entry()
-assert balanced, f'Ledger not balanced: diff={diff}'
-ledger.close()
-os.remove(db)
-print('LedgerEngine validation passed')
-"
+        import os, sqlite3
+        from arbitrage_academy import LedgerEngine
+        db = '__test_ledger.db'
+        ledger = LedgerEngine(db)
+        ledger.connect()
+        ok = ledger.record_trade('T0001', 1, 'BTC/USD', 'buy', 50000, 1.0, 50000, 50.0)
+        assert ok, 'Trade recording failed'
+        trades = ledger.get_trades(1)
+        assert len(trades) == 1, 'Expected 1 trade, got %d' % len(trades)
+        balanced, diff = ledger.verify_double_entry()
+        assert balanced, 'Ledger not balanced: diff=%s' % str(diff)
+        ledger.close()
+        os.remove(db)
+        print('LedgerEngine validation passed')
+        "
 
     - name: Validate RiskManager
       run: |
         python -c "
-from arbitrage_academy import RiskManager, LedgerEngine
-import os
-db = '__test_risk.db'
-ledger = LedgerEngine(db)
-ledger.connect()
-rm = RiskManager(ledger)
-report = rm.risk_report(1)
-print(f'Risk report generated ({len(report)} chars)')
-assert not rm.halted, 'Should not be halted on init'
-var = rm.compute_var(0.95)
-cvar = rm.compute_cvar(0.95)
-print(f'VaR: {var}, CVaR: {cvar}')
-ledger.close()
-os.remove(db)
-print('RiskManager validation passed')
-"
+        from arbitrage_academy import RiskManager, LedgerEngine
+        import os
+        db = '__test_risk.db'
+        ledger = LedgerEngine(db)
+        ledger.connect()
+        rm = RiskManager(ledger)
+        report = rm.risk_report(1)
+        print('Risk report generated (%d chars)' % len(report))
+        assert not rm.halted, 'Should not be halted on init'
+        var = rm.compute_var(0.95)
+        cvar = rm.compute_cvar(0.95)
+        print('VaR: %s, CVaR: %s' % (str(var), str(cvar)))
+        ledger.close()
+        os.remove(db)
+        print('RiskManager validation passed')
+        "
 
     - name: Validate BacktestEngine
       run: |
         python -c "
-from arbitrage_academy import BacktestEngine, LedgerEngine
-import os
-db = '__test_bt.db'
-ledger = LedgerEngine(db)
-ledger.connect()
-bt = BacktestEngine(ledger)
-assert bt.runs == []
-print('BacktestEngine init OK')
-ledger.close()
-os.remove(db)
-print('BacktestEngine validation passed')
-"
+        from arbitrage_academy import BacktestEngine, LedgerEngine
+        import os
+        db = '__test_bt.db'
+        ledger = LedgerEngine(db)
+        ledger.connect()
+        bt = BacktestEngine(ledger)
+        assert bt.runs == []
+        print('BacktestEngine init OK')
+        ledger.close()
+        os.remove(db)
+        print('BacktestEngine validation passed')
+        "
 
     - name: Validate CLI parses
       run: |
         python -c "
-import ast
-with open('arbitrage_academy.py') as f:
-    tree = ast.parse(f.read())
-# Find ArbitrageAcademyCLI
-for node in ast.walk(tree):
-    if isinstance(node, ast.ClassDef) and node.name == 'ArbitrageAcademyCLI':
-        methods = [n.name for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
-        expected = ['do_start','do_eod','do_advance','do_run','do_backtest','do_risk','do_risk_reset']
-        for e in expected:
-            assert e in methods, f'Missing method: {e}'
-        print(f'ArbitrageAcademyCLI methods validated: {len(methods)} total')
-        break
-"
+        import ast
+        with open('arbitrage_academy.py') as f:
+            tree = ast.parse(f.read())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == 'ArbitrageAcademyCLI':
+                methods = [n.name for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+                expected = ['do_start','do_eod','do_advance','do_run','do_backtest','do_risk','do_risk_reset']
+                for e in expected:
+                    assert e in methods, 'Missing method: ' + e
+                print('ArbitrageAcademyCLI methods validated: %d total' % len(methods))
+                break
+        "
 
     - name: Full integration smoke test
       run: |
         python -c "
-import json, os, urllib.request
-from arbitrage_academy import MockExchangeServer, MockPriceGenerator, OrderBookManager
+        import json, os, urllib.request, time
+        from arbitrage_academy import MockExchangeServer, MockPriceGenerator, OrderBookManager
 
-pg = MockPriceGenerator(seed=42)
-server = MockExchangeServer()
-assert server.start(), 'Server start failed'
+        pg = MockPriceGenerator(seed=42)
+        server = MockExchangeServer()
+        assert server.start(), 'Server start failed'
+        time.sleep(0.5)
 
-import time
-time.sleep(0.5)
+        # Health
+        with urllib.request.urlopen('http://localhost:8080/v1/health') as resp:
+            h = json.loads(resp.read())
+            assert h['status'] == 'operational'
+            print('Health OK: uptime=%d ticks' % h['uptime_ticks'])
 
-# Test order book fetch
-with urllib.request.urlopen('http://localhost:8080/v1/orderbook?symbol=BTC/USD') as resp:
-    ob = json.loads(resp.read())
-    assert 'bids' in ob, 'Order book missing bids'
-    assert 'regime' in ob, 'Order book missing regime'
-    print(f'Order book OK: {len(ob[\"bids\"])} bids, regime={ob[\"regime_name\"]}')
+        # Order book
+        with urllib.request.urlopen('http://localhost:8080/v1/orderbook?symbol=BTC/USD') as resp:
+            ob = json.loads(resp.read())
+            assert 'bids' in ob
+            assert 'regime' in ob
+            print('Order book OK: bids=%d regime=%s' % (len(ob['bids']), ob['regime_name']))
 
-# Test ticker
-with urllib.request.urlopen('http://localhost:8080/v1/ticker?symbol=ETH/USDT') as resp:
-    tk = json.loads(resp.read())
-    assert 'regime_name' in tk, 'Ticker missing regime'
-    print(f'Ticker OK: {tk[\"price\"]}')
+        # Ticker
+        with urllib.request.urlopen('http://localhost:8080/v1/ticker?symbol=ETH/USDT') as resp:
+            tk = json.loads(resp.read())
+            assert 'regime_name' in tk
+            print('Ticker OK: price=%s regime=%s' % (str(tk['price']), tk['regime_name']))
 
-# Test regime endpoint
-with urllib.request.urlopen('http://localhost:8080/v1/regime') as resp:
-    rg = json.loads(resp.read())
-    print(f'Regime endpoint OK: {rg[\"regime_name\"]}')
+        # Regime endpoint
+        with urllib.request.urlopen('http://localhost:8080/v1/regime') as resp:
+            rg = json.loads(resp.read())
+            print('Regime endpoint OK: %s' % rg['regime_name'])
 
-# Test market order
-import urllib.request
-req = urllib.request.Request(
-    'http://localhost:8080/v1/execute',
-    data=json.dumps({'symbol':'BTC/USD','side':'buy','quantity':0.1,'type':'market'}).encode(),
-    headers={'Content-Type':'application/json'},
-)
-with urllib.request.urlopen(req) as resp:
-    exec_data = json.loads(resp.read())
-    print(f'Market order OK: id={exec_data[\"order_id\"]}, filled={exec_data[\"filled_qty\"]}, avg_price={exec_data[\"avg_price\"]}')
+        # Market order
+        req = urllib.request.Request(
+            'http://localhost:8080/v1/execute',
+            data=json.dumps({'symbol':'BTC/USD','side':'buy','quantity':0.1,'type':'market'}).encode(),
+            headers={'Content-Type':'application/json'},
+        )
+        with urllib.request.urlopen(req) as resp:
+            ex = json.loads(resp.read())
+            print('Market order OK: filled=%s avg=%s' % (str(ex['filled_qty']), str(ex['avg_price'])))
 
-# Test limit order
-req = urllib.request.Request(
-    'http://localhost:8080/v1/execute',
-    data=json.dumps({'symbol':'BTC/USD','side':'buy','quantity':0.5,'type':'limit','price':60000}).encode(),
-    headers={'Content-Type':'application/json'},
-)
-with urllib.request.urlopen(req) as resp:
-    lim = json.loads(resp.read())
-    print(f'Limit order OK: id={lim[\"order_id\"]}, status={lim[\"status\"]}')
+        # Limit order
+        req = urllib.request.Request(
+            'http://localhost:8080/v1/execute',
+            data=json.dumps({'symbol':'BTC/USD','side':'buy','quantity':0.5,'type':'limit','price':60000}).encode(),
+            headers={'Content-Type':'application/json'},
+        )
+        with urllib.request.urlopen(req) as resp:
+            lm = json.loads(resp.read())
+            print('Limit order OK: status=%s' % lm['status'])
 
-# Test FOK
-req = urllib.request.Request(
-    'http://localhost:8080/v1/execute',
-    data=json.dumps({'symbol':'BTC/USD','side':'buy','quantity':100,'type':'fok'}).encode(),
-    headers={'Content-Type':'application/json'},
-)
-with urllib.request.urlopen(req) as resp:
-    fok = json.loads(resp.read())
-    print(f'FOK order OK: status={fok[\"status\"]}')
+        # FOK (should cancel)
+        req = urllib.request.Request(
+            'http://localhost:8080/v1/execute',
+            data=json.dumps({'symbol':'BTC/USD','side':'buy','quantity':100,'type':'fok'}).encode(),
+            headers={'Content-Type':'application/json'},
+        )
+        with urllib.request.urlopen(req) as resp:
+            fok = json.loads(resp.read())
+            print('FOK order OK: status=%s reason=%s' % (fok['status'], fok.get('reason','')))
 
-# Test orders endpoint
-with urllib.request.urlopen('http://localhost:8080/v1/orders?status=open') as resp:
-    ords = json.loads(resp.read())
-    print(f'Orders endpoint OK: {ords[\"count\"]} open orders')
+        # Orders endpoint
+        with urllib.request.urlopen('http://localhost:8080/v1/orders?status=open') as resp:
+            ords = json.loads(resp.read())
+            print('Orders endpoint OK: %d open' % ords['count'])
 
-# Test health
-with urllib.request.urlopen('http://localhost:8080/v1/health') as resp:
-    h = json.loads(resp.read())
-    assert h['status'] == 'operational'
-    print(f'Health OK: uptime={h[\"uptime_ticks\"]} ticks')
+        # Tick advance
+        req = urllib.request.Request(
+            'http://localhost:8080/v1/orderbook',
+            data=b'{}', headers={'Content-Type':'application/json'}, method='POST',
+        )
+        with urllib.request.urlopen(req) as resp:
+            tk2 = json.loads(resp.read())
+            print('Tick advance OK: tick=%d regime=%d' % (tk2['tick'], tk2['regime']))
 
-# Tick advance via POST
-req = urllib.request.Request(
-    'http://localhost:8080/v1/orderbook',
-    data=b'{}',
-    headers={'Content-Type':'application/json'},
-    method='POST',
-)
-with urllib.request.urlopen(req) as resp:
-    tick = json.loads(resp.read())
-    print(f'Tick advance OK: tick={tick[\"tick\"]}, regime={tick[\"regime\"]}')
-
-server.stop()
-print('ALL INTEGRATION TESTS PASSED')
-"
+        server.stop()
+        print('ALL INTEGRATION TESTS PASSED')
+        "
 
     - name: Validate Dockerfile
       run: |
         python -c "
-import ast
-with open('Dockerfile') as f:
-    content = f.read()
-    assert 'python:3.11-slim' in content
-    assert 'EXPOSE 8080 8081' in content
-    assert 'arbitrage_academy.py' in content
-    print('Dockerfile validation passed')
-"
+        with open('Dockerfile') as f:
+            content = f.read()
+            assert 'python:3.11-slim' in content
+            assert 'EXPOSE 8080 8081' in content
+            assert 'arbitrage_academy.py' in content
+            print('Dockerfile validation passed')
+        "
