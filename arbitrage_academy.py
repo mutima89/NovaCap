@@ -3111,8 +3111,10 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         print(f"  {PrincipalStrategist.observation('You will write code. You will make mistakes.')}")
         print(f"  {PrincipalStrategist.observation('You will fix them. Or you will not advance.')}")
         print()
-        print(f"  {c(Color.BRIGHT_YELLOW, 'DIRECTIVE:')} {c(Color.BRIGHT_WHITE, 'Type \"start\" to begin Day 1.')}")
-        print(f"  {muted('Type \"help\" for available commands.')}")
+        directive_msg = 'Type "start" to begin Day 1.'
+        help_msg = 'Type "help" for available commands.'
+        print(f"  {c(Color.BRIGHT_YELLOW, 'DIRECTIVE:')} {c(Color.BRIGHT_WHITE, directive_msg)}")
+        print(f"  {muted(help_msg)}")
         print()
 
     def _display_day_start(self):
