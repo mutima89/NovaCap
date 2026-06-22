@@ -42,7 +42,7 @@ from urllib.parse import urlparse, parse_qs
 from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "Principal Strategist — NovaCap Financial Technologies Ltd."
 
 
@@ -325,8 +325,65 @@ class PrincipalStrategist:
 # SECTION 2 — MOCK EXCHANGE SERVER
 # ==============================================================================
 
+class RegimeConfig:
+    """Configuration for a market regime."""
+
+    def __init__(
+        self,
+        name: str,
+        volatility: float,
+        mean_reversion_strength: float,
+        trend_bias: float,
+        spread_multiplier: float,
+        jump_intensity: float,
+        jump_scale: float,
+        depth: int,
+        description: str = "",
+    ):
+        self.name = name
+        self.volatility = volatility
+        self.mean_reversion_strength = mean_reversion_strength
+        self.trend_bias = trend_bias
+        self.spread_multiplier = spread_multiplier
+        self.jump_intensity = jump_intensity
+        self.jump_scale = jump_scale
+        self.depth = depth
+        self.description = description
+
+
+REGIMES: Dict[int, RegimeConfig] = {
+    0: RegimeConfig(
+        name="LOW_VOL_TRENDING",
+        volatility=0.003,
+        mean_reversion_strength=0.002,
+        trend_bias=0.0004,
+        spread_multiplier=0.8,
+        jump_intensity=0.002,
+        jump_scale=0.005,
+        depth=12,
+        description="Low volatility with mild positive drift. Tight spreads, deep book.",
+    ),
+    1: RegimeConfig(
+        name="HIGH_VOL_MEAN_REVERTING",
+        volatility=0.025,
+        mean_reversion_strength=0.08,
+        trend_bias=-0.0001,
+        spread_multiplier=1.8,
+        jump_intensity=0.015,
+        jump_scale=0.04,
+        depth=6,
+        description="High volatility mean-reverting. Wide spreads, shallow book, frequent jumps.",
+    ),
+}
+
+
 class MockPriceGenerator:
-    """Generates synthetic price data with realistic microstructure."""
+    """
+    Two-state regime-switching price generator with jump diffusion.
+
+    Regime 0 — Low-vol trending (tight spreads, deep book, mild drift)
+    Regime 1 — High-vol mean-reverting (wide spreads, shallow book, jumps)
+    """
 
     def __init__(self, seed: int = 42):
         self.rng = random.Random(seed)
@@ -335,95 +392,237 @@ class MockPriceGenerator:
             "ETH/USD": 3125.0,
             "BTC/USDT": 67850.0,
             "ETH/USDT": 3128.0,
-            "EUR/USD": 1.0850,
+            "SOL/USD": 142.0,
+            "AVAX/USDT": 35.0,
+            "LINK/USD": 14.5,
         }
-        self.spreads = {
-            "BTC/USD": 120.0,
-            "ETH/USD": 8.0,
-            "BTC/USDT": 115.0,
-            "ETH/USDT": 7.5,
-            "EUR/USD": 0.0003,
-        }
-        self.volatilities = {
-            "BTC/USD": 0.004,
-            "ETH/USD": 0.006,
-            "BTC/USDT": 0.004,
-            "ETH/USDT": 0.0055,
-            "EUR/USD": 0.0003,
+        self.base_spreads = {
+            "BTC/USD": 0.0015,
+            "ETH/USD": 0.0025,
+            "BTC/USDT": 0.0015,
+            "ETH/USDT": 0.0025,
+            "SOL/USD": 0.004,
+            "AVAX/USDT": 0.005,
+            "LINK/USD": 0.006,
         }
         self.prices: Dict[str, float] = dict(self.base_prices)
         self.tick = 0
+        self.current_regime: int = 0
+        self.regime_duration = 0
+        self.max_regime_duration = self.rng.randint(30, 80)
+        self.price_history: Dict[str, List[float]] = {s: [] for s in self.prices}
+        self.order_book: Dict[str, Dict[str, Any]] = {}
+        self.limit_orders: List[Dict[str, Any]] = []
+        self.order_id_counter = 0
+
+    def _maybe_switch_regime(self) -> None:
+        """Transition between regimes via 2-state Markov chain."""
+        self.regime_duration += 1
+        if self.regime_duration < self.max_regime_duration:
+            return
+        p_stay = 0.85 if self.current_regime == 0 else 0.70
+        if self.rng.random() > p_stay:
+            self.current_regime = 1 - self.current_regime
+            self.regime_duration = 0
+            self.max_regime_duration = self.rng.randint(20, 100)
+
+    def _apply_jump(self, sym: str, cfg: RegimeConfig) -> float:
+        """Poisson jump process — returns multiplicative shock."""
+        if self.rng.random() < cfg.jump_intensity:
+            direction = 1 if self.rng.random() > 0.5 else -1
+            return 1.0 + direction * self.rng.expovariate(1.0 / cfg.jump_scale)
+        return 1.0
 
     def update(self) -> None:
-        """Advance one tick — random walk prices."""
+        """Advance one tick with regime-appropriate dynamics."""
         self.tick += 1
+        self._maybe_switch_regime()
+        cfg = REGIMES[self.current_regime]
+
         for sym in self.prices:
-            vol = self.volatilities.get(sym, 0.005)
-            ret = self.rng.gauss(0, vol)
-            self.prices[sym] *= (1 + ret)
-            # Add mean reversion
-            mid = self.base_prices[sym]
-            self.prices[sym] += (mid - self.prices[sym]) * 0.01
+            base = self.base_prices.get(sym, 100.0)
+            ret = self.rng.gauss(cfg.trend_bias, cfg.volatility)
 
-    def get_orderbook(self, symbol: str, exchange: str = "PRIMARY") -> Dict[str, Any]:
-        """Generate synthetic order book for a symbol."""
+            # Mean reversion toward base
+            reversion = cfg.mean_reversion_strength * (base - self.prices[sym]) / base
+
+            # Jump component
+            jump = self._apply_jump(sym, cfg)
+
+            self.prices[sym] *= (1 + ret + reversion) * jump
+            self.prices[sym] = max(self.prices[sym], base * 0.1)  # floor
+
+            # Store history
+            self.price_history[sym].append(self.prices[sym])
+            if len(self.price_history[sym]) > 100:
+                self.price_history[sym].pop(0)
+
+    def _build_order_book(self, symbol: str) -> Dict[str, Any]:
+        """Generate L2 order book from current price and regime."""
         mid = self.prices.get(symbol, 100.0)
-        spread = self.spreads.get(symbol, mid * 0.001)
-        vol = self.volatilities.get(symbol, 0.005)
+        cfg = REGIMES[self.current_regime]
+        base_spread_pct = self.base_spreads.get(symbol, 0.002)
+        spread_pct = base_spread_pct * cfg.spread_multiplier
+        half_spread = mid * spread_pct / 2
 
-        # Add some noise
-        bid = mid - spread / 2 + self.rng.gauss(0, spread * 0.1)
-        ask = mid + spread / 2 + self.rng.gauss(0, spread * 0.1)
+        bid = mid - half_spread + self.rng.gauss(0, half_spread * 0.1)
+        ask = mid + half_spread + self.rng.gauss(0, half_spread * 0.1)
 
-        # Generate depth
-        bids = []
-        asks = []
-        for i in range(10):
-            qty = self.rng.uniform(0.5, 50) * (1 - i * 0.08)
-            bids.append({"price": round(bid * (1 - i * 0.002), 2), "quantity": round(qty, 4)})
-            asks.append({"price": round(ask * (1 + i * 0.002), 2), "quantity": round(qty, 4)})
+        depth = cfg.depth
+        bids, asks = [], []
+        for i in range(depth):
+            decay = 1 - i / (depth * 1.5)
+            qty = self.rng.uniform(0.3, 40) * max(0.1, decay)
+            px_bid = bid * (1 - i * spread_pct * 0.3 * cfg.spread_multiplier)
+            px_ask = ask * (1 + i * spread_pct * 0.3 * cfg.spread_multiplier)
+            bids.append({"price": round(px_bid, 2), "quantity": round(qty, 4)})
+            asks.append({"price": round(px_ask, 2), "quantity": round(qty, 4)})
 
-        return {
+        ob = {
             "symbol": symbol,
-            "exchange": exchange,
+            "exchange": "PRIMARY",
             "timestamp": datetime.datetime.now().isoformat(),
             "tick": self.tick,
+            "regime": self.current_regime,
+            "regime_name": cfg.name,
             "mid": round(mid, 2),
             "spread": round(ask - bid, 2),
-            "bids": bids[:5],
-            "asks": asks[:5],
+            "spread_bps": round((ask - bid) / mid * 10000, 1),
+            "bids": bids,
+            "asks": asks,
         }
+        self.order_book[symbol] = ob
+        return ob
+
+    def get_orderbook(self, symbol: str, exchange: str = "PRIMARY") -> Dict[str, Any]:
+        return self._build_order_book(symbol)
+
+    def estimate_slippage_bps(self, symbol: str, quantity: float, side: str) -> float:
+        """Estimate slippage in bps based on order book depth."""
+        ob = self.order_book.get(symbol)
+        if not ob:
+            return 0.0
+        levels = ob["asks"] if side == "buy" else ob["bids"]
+        mid = ob["mid"]
+        remaining = abs(quantity)
+        total_cost = 0.0
+        for level in levels:
+            if remaining <= 0:
+                break
+            fill = min(remaining, level["quantity"])
+            total_cost += fill * level["price"]
+            remaining -= fill
+        if remaining > 0:
+            total_cost += remaining * mid * 1.05  # slippage beyond book
+        avg_price = total_cost / abs(quantity) if quantity != 0 else mid
+        expected_price = mid * (1 + 0.5 * self.base_spreads.get(symbol, 0.002))
+        slippage_bps = (avg_price - expected_price) / expected_price * 10000 if expected_price > 0 else 0
+        return abs(round(slippage_bps, 2))
 
     def get_ticker(self, symbol: str) -> Dict[str, Any]:
         """Get current ticker with 24h stats."""
         mid = self.prices.get(symbol, 100.0)
-        change_24h = self.rng.uniform(-5.0, 5.0)
-        vol_24h = self.rng.uniform(1000, 50000)
+        hist = self.price_history.get(symbol, [])
+        change_24h = ((mid / hist[0]) - 1) * 100 if len(hist) > 1 else self.rng.uniform(-3, 3)
+        vol_24h = self.rng.uniform(1000, 50000) * (2 if self.current_regime == 1 else 1)
         return {
             "symbol": symbol,
             "price": round(mid, 2),
             "change_24h_pct": round(change_24h, 2),
             "volume_24h": round(vol_24h, 2),
+            "regime": self.current_regime,
+            "regime_name": REGIMES[self.current_regime].name,
             "timestamp": datetime.datetime.now().isoformat(),
         }
 
 
+class OrderBookManager:
+    """
+    Maintains limit order queues and matches against market orders.
+    Supports GTC, IOC, and FOK order types with partial fills.
+    """
+
+    def __init__(self):
+        self.buy_orders: List[Dict[str, Any]] = []  # price-desc priority
+        self.sell_orders: List[Dict[str, Any]] = []  # price-asc priority
+        self.order_id_counter = 0
+
+    def _gen_order_id(self) -> str:
+        self.order_id_counter += 1
+        return f"ORD-{int(time.time() * 1000)}-{self.order_id_counter}"
+
+    def add_limit_order(self, order: Dict[str, Any]) -> str:
+        """Insert a limit order into the book. Returns order_id."""
+        oid = self._gen_order_id()
+        order["order_id"] = oid
+        order["filled_qty"] = 0.0
+        order["status"] = "open"
+        order["created_at"] = datetime.datetime.now().isoformat()
+        if order["side"] == "buy":
+            self.buy_orders.append(order)
+            self.buy_orders.sort(key=lambda x: (-x["price"], x.get("created_at", "")))
+        else:
+            self.sell_orders.append(order)
+            self.sell_orders.sort(key=lambda x: (x["price"], x.get("created_at", "")))
+        return oid
+
+    def match_market_order(self, symbol: str, side: str, quantity: float) -> Dict[str, Any]:
+        """
+        Match a market order against the limit book.
+        Returns execution report with potential partial fills.
+        """
+        fills = []
+        remaining = quantity
+        book = self.sell_orders if side == "buy" else self.buy_orders
+
+        # Iterate a copy since we modify in place
+        matched_ids = []
+        for order in book:
+            if remaining <= 0:
+                break
+            if order["symbol"] != symbol:
+                continue
+            available = order["quantity"] - order["filled_qty"]
+            if available <= 0:
+                matched_ids.append(order["order_id"])
+                continue
+            fill_qty = min(remaining, available)
+            fill_price = order["price"]
+            fills.append({"price": fill_price, "quantity": fill_qty})
+            order["filled_qty"] += fill_qty
+            remaining -= fill_qty
+            if order["filled_qty"] >= order["quantity"]:
+                order["status"] = "filled"
+                matched_ids.append(order["order_id"])
+
+        # Remove fully filled orders
+        for oid in matched_ids:
+            self.buy_orders = [o for o in self.buy_orders if o["order_id"] != oid]
+            self.sell_orders = [o for o in self.sell_orders if o["order_id"] != oid]
+
+        filled_qty = quantity - remaining
+        return {"fills": fills, "filled_qty": filled_qty, "remaining": remaining}
+
+
 class MockExchangeHandler(BaseHTTPRequestHandler):
     """
-    RESTful handler for the mock exchange.
+    RESTful handler for the mock exchange with limit order book.
     Endpoints:
-      GET  /v1/orderbook?symbol=BTC/USD
-      GET  /v1/ticker?symbol=BTC/USD
-      GET  /v1/account
-      POST /v1/execute
+      GET   /v1/orderbook?symbol=BTC/USD
+      GET   /v1/ticker?symbol=BTC/USD
+      GET   /v1/account
+      GET   /v1/orders?status=open
+      POST  /v1/execute
+      POST  /v1/orderbook
+      POST  /v1/cancel
+      GET   /v1/health
     """
 
     rate_limit_requests: Dict[str, List[float]] = {}
-    rate_limit_win = 1.0  # 1 second
-    rate_limit_max = 10   # max 10 requests per second
+    rate_limit_win = 1.0
+    rate_limit_max = 15
 
     def log_message(self, fmt, *args):
-        """Suppress HTTP server logs."""
         pass
 
     def _send_json(self, data: Any, status: int = 200):
@@ -439,68 +638,85 @@ class MockExchangeHandler(BaseHTTPRequestHandler):
         self._send_json({"error": msg}, status)
 
     def _check_rate_limit(self) -> bool:
-        """Enforce rate limiting per client IP."""
         client = self.client_address[0]
         now = time.time()
         window_start = now - self.rate_limit_win
-
         if client not in self.rate_limit_requests:
             self.rate_limit_requests[client] = []
-
-        # Prune old entries
         self.rate_limit_requests[client] = [
             t for t in self.rate_limit_requests[client] if t > window_start
         ]
-
         if len(self.rate_limit_requests[client]) >= self.rate_limit_max:
             return False
-
         self.rate_limit_requests[client].append(now)
         return True
+
+    def _get_pg(self):
+        return getattr(self.server, "price_gen", None)
+
+    def _get_obm(self):
+        if not hasattr(self.server, "order_book_mgr"):
+            self.server.order_book_mgr = OrderBookManager()
+        return self.server.order_book_mgr
 
     def do_GET(self):
         if not self._check_rate_limit():
             self._send_json({"error": "rate_limit_exceeded", "retry_after_ms": 1000}, 429)
             return
-
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
         params = parse_qs(parsed.query)
+        pg = self._get_pg()
 
         if path == "/v1/orderbook":
             symbol = params.get("symbol", ["BTC/USD"])[0]
             exchange = params.get("exchange", ["PRIMARY"])[0]
-            if not hasattr(self.server, 'price_gen'):
+            if not pg:
                 self._send_error("Exchange not initialized", 500)
                 return
-            ob = self.server.price_gen.get_orderbook(symbol, exchange)
-            self._send_json(ob)
+            self._send_json(pg.get_orderbook(symbol, exchange))
 
         elif path == "/v1/ticker":
             symbol = params.get("symbol", ["BTC/USD"])[0]
-            if not hasattr(self.server, 'price_gen'):
+            if not pg:
                 self._send_error("Exchange not initialized", 500)
                 return
-            tk = self.server.price_gen.get_ticker(symbol)
-            self._send_json(tk)
+            self._send_json(pg.get_ticker(symbol))
+
+        elif path == "/v1/orders":
+            status_filter = params.get("status", ["all"])[0]
+            obm = self._get_obm()
+            all_orders = obm.buy_orders + obm.sell_orders
+            if status_filter != "all":
+                all_orders = [o for o in all_orders if o["status"] == status_filter]
+            self._send_json({"orders": all_orders, "count": len(all_orders)})
+
+        elif path == "/v1/regime":
+            if pg:
+                self._send_json({
+                    "regime": pg.current_regime,
+                    "regime_name": REGIMES[pg.current_regime].name,
+                    "regime_duration": pg.regime_duration,
+                    "description": REGIMES[pg.current_regime].description,
+                })
+            else:
+                self._send_error("Exchange not initialized", 500)
 
         elif path == "/v1/account":
             self._send_json({
                 "account_id": "TRAINEE-001",
-                "balances": {
-                    "USD": 100000.0,
-                    "BTC": 0.0,
-                    "ETH": 0.0,
-                    "USDT": 50000.0,
-                },
+                "balances": {"USD": 100000.0, "BTC": 0.0, "ETH": 0.0, "USDT": 50000.0, "SOL": 0.0, "AVAX": 0.0, "LINK": 0.0},
                 "day_pnl": 0.0,
                 "total_pnl": 0.0,
             })
 
         elif path == "/v1/health":
-            self._send_json({"status": "operational", "uptime_ticks": (
-                self.server.price_gen.tick if hasattr(self.server, 'price_gen') else 0
-            )})
+            self._send_json({
+                "status": "operational",
+                "uptime_ticks": pg.tick if pg else 0,
+                "regime": pg.current_regime if pg else -1,
+                "limit_orders": self._get_obm().order_id_counter if hasattr(self.server, "order_book_mgr") else 0,
+            })
 
         else:
             self._send_error(f"Unknown endpoint: {path}", 404)
@@ -509,65 +725,177 @@ class MockExchangeHandler(BaseHTTPRequestHandler):
         if not self._check_rate_limit():
             self._send_json({"error": "rate_limit_exceeded", "retry_after_ms": 1000}, 429)
             return
-
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
+        content_length = int(self.headers.get("Content-Length", 0))
+        body = b""
+        if content_length > 0:
+            body = self.rfile.read(content_length)
+        try:
+            data = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            self._send_error("Invalid JSON body", 400)
+            return
+        pg = self._get_pg()
 
         if path == "/v1/execute":
-            content_length = int(self.headers.get("Content-Length", 0))
-            body = b""
-            if content_length > 0:
-                body = self.rfile.read(content_length)
-            try:
-                data = json.loads(body) if body else {}
-            except json.JSONDecodeError:
-                self._send_error("Invalid JSON body", 400)
+            if not pg:
+                self._send_error("Exchange not initialized", 500)
                 return
 
             symbol = data.get("symbol", "BTC/USD")
             side = data.get("side", "buy")
             quantity = float(data.get("quantity", 0))
-            order_type = data.get("type", "market")
+            order_type = data.get("type", "market").lower()
+            limit_price = float(data.get("price", 0)) if data.get("price") else None
 
             if quantity <= 0:
                 self._send_error("Invalid quantity", 400)
                 return
 
-            if not hasattr(self.server, 'price_gen'):
-                self._send_error("Exchange not initialized", 500)
-                return
+            mid = pg.prices.get(symbol, 100.0)
+            obm = self._get_obm()
+            fee_rate = 0.001
 
-            mid = self.server.price_gen.prices.get(symbol, 100.0)
-            spread = self.server.price_gen.spreads.get(symbol, mid * 0.001)
+            if order_type in ("limit", "gtc"):
+                if not limit_price or limit_price <= 0:
+                    self._send_error("Limit price required for limit orders", 400)
+                    return
+                oid = obm.add_limit_order({
+                    "symbol": symbol, "side": side,
+                    "quantity": quantity, "price": limit_price,
+                    "type": "limit",
+                })
+                self._send_json({
+                    "order_id": oid, "symbol": symbol, "side": side,
+                    "type": "limit", "quantity": quantity,
+                    "price": limit_price, "status": "open",
+                    "message": "Limit order placed in book",
+                    "timestamp": datetime.datetime.now().isoformat(),
+                })
 
-            # Add slippage
-            slippage = self.rng.uniform(-0.001, 0.003) if hasattr(self, 'rng') else 0.001
-            price = mid + (spread / 2 if side == "buy" else -spread / 2)
-            price *= (1 + slippage)
-            total = price * quantity
-            fee = total * 0.001  # 0.1% fee
+            elif order_type == "ioc":
+                # Immediate-or-Cancel: match what we can, cancel rest
+                result = obm.match_market_order(symbol, side, quantity)
+                filled_qty = result["filled_qty"]
+                if filled_qty <= 0:
+                    self._send_json({
+                        "order_id": obm._gen_order_id(),
+                        "symbol": symbol, "side": side,
+                        "quantity": quantity, "filled_qty": 0,
+                        "avg_price": 0, "total": 0, "fee": 0,
+                        "status": "cancelled",
+                        "reason": "No liquidity",
+                        "timestamp": datetime.datetime.now().isoformat(),
+                    })
+                    return
+                total_cost = sum(f["price"] * f["quantity"] for f in result["fills"])
+                avg_price = total_cost / filled_qty
+                fee = total_cost * fee_rate
+                self._send_json({
+                    "order_id": obm._gen_order_id(),
+                    "symbol": symbol, "side": side,
+                    "type": "ioc",
+                    "quantity": quantity,
+                    "filled_qty": filled_qty,
+                    "remaining": result["remaining"],
+                    "avg_price": round(avg_price, 2),
+                    "total": round(total_cost, 2),
+                    "fee": round(fee, 2),
+                    "fills": result["fills"],
+                    "status": "partially_filled" if result["remaining"] > 0 else "filled",
+                    "timestamp": datetime.datetime.now().isoformat(),
+                })
 
-            result = {
-                "order_id": f"ORD-{int(time.time() * 1000)}",
-                "symbol": symbol,
-                "side": side,
-                "type": order_type,
-                "quantity": quantity,
-                "price": round(price, 2),
-                "total": round(total, 2),
-                "fee": round(fee, 2),
-                "status": "filled",
-                "timestamp": datetime.datetime.now().isoformat(),
-            }
-            self._send_json(result)
+            elif order_type == "fok":
+                # Fill-or-Kill: must fill entirely or cancel
+                result = obm.match_market_order(symbol, side, quantity)
+                if result["remaining"] > 0:
+                    self._send_json({
+                        "order_id": obm._gen_order_id(),
+                        "symbol": symbol, "side": side,
+                        "quantity": quantity, "filled_qty": 0,
+                        "status": "cancelled",
+                        "reason": "Could not fill entire quantity (FOK)",
+                        "timestamp": datetime.datetime.now().isoformat(),
+                    })
+                    return
+                total_cost = sum(f["price"] * f["quantity"] for f in result["fills"])
+                avg_price = total_cost / quantity
+                fee = total_cost * fee_rate
+                self._send_json({
+                    "order_id": obm._gen_order_id(),
+                    "symbol": symbol, "side": side,
+                    "type": "fok",
+                    "quantity": quantity,
+                    "filled_qty": quantity,
+                    "avg_price": round(avg_price, 2),
+                    "total": round(total_cost, 2),
+                    "fee": round(fee, 2),
+                    "fills": result["fills"],
+                    "status": "filled",
+                    "timestamp": datetime.datetime.now().isoformat(),
+                })
+
+            else:
+                # Market order — match against limit book
+                ob = pg.get_orderbook(symbol)
+                # First try matching against existing limit orders
+                result = obm.match_market_order(symbol, side, quantity)
+                filled_qty = result["filled_qty"]
+                remaining = result["remaining"]
+
+                # Any unfilled quantity fills at market (with slippage from book depth)
+                if remaining > 0:
+                    mid = ob["mid"]
+                    slippage_bps = pg.estimate_slippage_bps(symbol, remaining, side)
+                    fill_price = mid * (1 + slippage_bps / 10000 * (1 if side == "buy" else -1))
+                    result["fills"].append({"price": fill_price, "quantity": remaining})
+                    filled_qty += remaining
+                    remaining = 0
+
+                if filled_qty <= 0:
+                    self._send_error("No liquidity available", 400)
+                    return
+
+                total_cost = sum(f["price"] * f["quantity"] for f in result["fills"])
+                avg_price = total_cost / filled_qty
+                fee = total_cost * fee_rate
+
+                self._send_json({
+                    "order_id": obm._gen_order_id(),
+                    "symbol": symbol, "side": side,
+                    "type": "market",
+                    "quantity": quantity,
+                    "filled_qty": filled_qty,
+                    "avg_price": round(avg_price, 2),
+                    "total": round(total_cost, 2),
+                    "fee": round(fee, 2),
+                    "slippage_bps": round(slippage_bps, 2) if remaining == 0 else 0,
+                    "fills": result["fills"],
+                    "status": "filled",
+                    "timestamp": datetime.datetime.now().isoformat(),
+                })
 
         elif path == "/v1/orderbook":
-            # POST to advance ticker
-            if hasattr(self.server, 'price_gen'):
-                self.server.price_gen.update()
-                self._send_json({"status": "tick_advanced", "tick": self.server.price_gen.tick})
+            if pg:
+                pg.update()
+                # Also advance all open limit orders: check for new matches
+                self._get_obm()
+                self._send_json({"status": "tick_advanced", "tick": pg.tick, "regime": pg.current_regime})
             else:
                 self._send_error("Exchange not initialized", 500)
+
+        elif path == "/v1/cancel":
+            order_id = data.get("order_id", "")
+            obm = self._get_obm()
+            for book in (obm.buy_orders, obm.sell_orders):
+                for o in book:
+                    if o["order_id"] == order_id and o["status"] == "open":
+                        o["status"] = "cancelled"
+                        self._send_json({"order_id": order_id, "status": "cancelled"})
+                        return
+            self._send_error(f"Order {order_id} not found or not cancellable", 404)
 
         else:
             self._send_error(f"Unknown endpoint: {path}", 404)
@@ -1307,7 +1635,301 @@ class StateManager:
 
 
 # ==============================================================================
-# SECTION 6 — FILE WORKSPACE GENERATOR
+# SECTION 6 — RISK MANAGER
+# ==============================================================================
+
+class RiskManager:
+    """
+    Multi-layer risk management system.
+    Monitors portfolio-level VaR/CVaR, correlation, position limits,
+    leverage constraints, and circuit breaker conditions.
+    """
+
+    LEVERAGE_MAX = 2.0
+    POSITION_LIMIT_PCT = 0.15
+    CIRCUIT_BREAKER_DRAWDOWN_PCT = 0.05
+    CIRCUIT_BREAKER_WINDOW = 10
+    VAR_CONFIDENCE = 0.95
+    INITIAL_CAPITAL = 100000.0
+
+    def __init__(self, ledger: LedgerEngine):
+        self.ledger = ledger
+        self.halted = False
+        self.halt_reason: Optional[str] = None
+        self.equity_curve: List[float] = [self.INITIAL_CAPITAL]
+        self.returns: List[float] = []
+
+    def check_circuit_breaker(self, day: int) -> bool:
+        """
+        Check if P&L has dropped more than threshold in the last N bars.
+        Returns True if circuit breaker is tripped (trading halted).
+        """
+        if self.halted:
+            return True
+        pnl_rows = self.ledger.calculate_pnl(day)
+        day_pnl = sum(r["net_pnl"] for r in pnl_rows)
+        current_equity = self.equity_curve[-1] + day_pnl if self.equity_curve else self.INITIAL_CAPITAL
+        self.equity_curve.append(current_equity)
+        if len(self.equity_curve) > 1:
+            ret = (self.equity_curve[-1] - self.equity_curve[-2]) / self.equity_curve[-2]
+            self.returns.append(ret)
+
+        # Check drawdown over window
+        window = self.equity_curve[-(self.CIRCUIT_BREAKER_WINDOW + 1):]
+        if len(window) >= self.CIRCUIT_BREAKER_WINDOW:
+            peak = max(window[:-1])
+            peak_to_current = (peak - current_equity) / peak if peak > 0 else 0
+            if peak_to_current >= self.CIRCUIT_BREAKER_DRAWDOWN_PCT:
+                self.halted = True
+                self.halt_reason = (
+                    f"Circuit breaker tripped: {peak_to_current*100:.2f}% drawdown "
+                    f"exceeds {self.CIRCUIT_BREAKER_DRAWDOWN_PCT*100:.0f}% threshold"
+                )
+                return True
+        return False
+
+    def check_position_limit(self, symbol_balance: float, capital: float) -> bool:
+        """Check if a position exceeds the per-symbol limit."""
+        return symbol_balance <= capital * self.POSITION_LIMIT_PCT
+
+    def check_leverage(self, gross_exposure: float, capital: float) -> bool:
+        """Check if total leverage exceeds max allowed."""
+        if capital <= 0:
+            return False
+        return (gross_exposure / capital) <= self.LEVERAGE_MAX
+
+    def compute_var(self, confidence: float = 0.95) -> float:
+        """Historical VaR at given confidence level."""
+        if len(self.returns) < 20:
+            return 0.0
+        sorted_rets = sorted(self.returns)
+        idx = max(0, int((1 - confidence) * len(sorted_rets)) - 1)
+        return abs(sorted_rets[idx])
+
+    def compute_cvar(self, confidence: float = 0.95) -> float:
+        """Conditional VaR (expected shortfall)."""
+        if len(self.returns) < 20:
+            return 0.0
+        var = self.compute_var(confidence)
+        tail = [r for r in self.returns if r <= -var]
+        if not tail:
+            return var
+        return abs(sum(tail) / len(tail))
+
+    def compute_correlation(self, trades: List[Dict[str, Any]]) -> Dict[str, float]:
+        """
+        Compute symbol-level return correlations.
+        Returns dict of symbol→correlation-to-portfolio.
+        """
+        if len(trades) < 5:
+            return {}
+        by_sym: Dict[str, List[float]] = {}
+        for t in trades:
+            sym = t.get("symbol", "UNKNOWN")
+            pnl = t.get("total", 0) * (1 if t.get("side") == "sell" else -1)
+            by_sym.setdefault(sym, []).append(pnl)
+        result = {}
+        portfolio_rets = [sum(by_sym[s][i] for s in by_sym if i < len(by_sym[s])) for i in range(max(len(v) for v in by_sym.values()))]
+        if len(portfolio_rets) < 3:
+            return {}
+        for sym, rets in by_sym.items():
+            if len(rets) < 3:
+                continue
+            n = min(len(rets), len(portfolio_rets))
+            sym_arr = rets[:n]
+            port_arr = portfolio_rets[:n]
+            mean_s = sum(sym_arr) / n
+            mean_p = sum(port_arr) / n
+            num = sum((s - mean_s) * (p - mean_p) for s, p in zip(sym_arr, port_arr))
+            den = (sum((s - mean_s)**2 for s in sym_arr) * sum((p - mean_p)**2 for p in port_arr)) ** 0.5
+            result[sym] = round(num / den, 4) if den != 0 else 0.0
+        return result
+
+    def risk_report(self, day: int) -> str:
+        """Generate a human-readable risk summary."""
+        lines = [f"  {c(Color.BRIGHT_WHITE, 'RISK REPORT — Day ' + str(day))}"]
+        lines.append(f"  {muted('=' * 50)}")
+        if self.halted:
+            lines.append(f"  {c(Color.FAIL, 'CIRCUIT BREAKER: ACTIVE')}")
+            lines.append(f"  {c(Color.BRIGHT_RED, 'Reason: ' + (self.halt_reason or 'N/A'))}")
+        else:
+            lines.append(f"  {c(Color.BRIGHT_GREEN, 'Circuit Breaker: Inactive')}")
+        eq = self.equity_curve[-1] if self.equity_curve else self.INITIAL_CAPITAL
+        dd = 0.0
+        if len(self.equity_curve) > 1:
+            peak = max(self.equity_curve)
+            dd = (peak - eq) / peak * 100 if peak > 0 else 0
+        lines.append(f"  Equity: ${eq:,.2f}  |  Max DD: {dd:.2f}%")
+        var95 = self.compute_var(0.95)
+        cvar95 = self.compute_cvar(0.95)
+        lines.append(f"  VaR(95%): {var95*100:.2f}%  |  CVaR(95%): {cvar95*100:.2f}%")
+        gross = sum(max(0, a.get("balance", 0)) for a in self.ledger.get_account_balances())
+        lev = gross / eq if eq > 0 else 0
+        lines.append(f"  Gross Exposure: ${gross:,.2f}  |  Leverage: {lev:.2f}x (max {self.LEVERAGE_MAX}x)")
+        trades = self.ledger.get_trades(day)
+        corr = self.compute_correlation(trades)
+        if corr:
+            corr_str = "  |  ".join(f"{s}: {v:+.3f}" for s, v in sorted(corr.items()))
+            lines.append(f"  Correlation: {corr_str}")
+        lines.append(f"  Positions: {len(trades)} trades today")
+        lines.append("")
+        return "\n".join(lines)
+
+
+# ==============================================================================
+# SECTION 7 — BACKTEST ENGINE
+# ==============================================================================
+
+class BacktestRun:
+    """Holds results from a single backtest iteration."""
+
+    def __init__(self, seed: int, final_equity: float, sharpe: float,
+                 max_dd: float, total_trades: int, win_rate: float,
+                 returns: List[float], equity_curve: List[float]):
+        self.seed = seed
+        self.final_equity = final_equity
+        self.sharpe = sharpe
+        self.max_dd = max_dd
+        self.total_trades = total_trades
+        self.win_rate = win_rate
+        self.returns = returns
+        self.equity_curve = equity_curve
+
+
+class BacktestEngine:
+    """
+    Monte Carlo backtesting engine.
+    Replays a stored price sequence against a strategy using seeded runs.
+    """
+
+    def __init__(self, ledger: LedgerEngine):
+        self.ledger = ledger
+        self.runs: List[BacktestRun] = []
+        self._price_series: Dict[str, List[float]] = {}
+
+    def capture_price_series(self, pg: MockPriceGenerator) -> None:
+        """Capture current price history from the live generator."""
+        self._price_series = {}
+        for sym, prices in pg.price_history.items():
+            self._price_series[sym] = list(prices)
+
+    def run_backtest(self, seed: int, solution_path: str, days: int = 30) -> BacktestRun:
+        """
+        Run a single backtest with a fixed seed.
+        Replays stored price sequence against the strategy.
+        """
+        # We use the existing EvaluationEngine to score
+        pg = MockPriceGenerator(seed)
+        # Fast-forward to build history
+        for _ in range(100):
+            pg.update()
+
+        # Run the solution against the seeded generator using subprocess
+        start_equity = 100000.0
+        equity = [start_equity]
+        returns: List[float] = []
+
+        for day_idx in range(days):
+            if not os.path.exists(solution_path):
+                break
+            try:
+                env = os.environ.copy()
+                env["NOVACAP_SEED"] = str(seed + day_idx)
+                env["NOVACAP_DAY"] = str(day_idx + 1)
+                result = subprocess.run(
+                    [sys.executable, solution_path],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                    env=env,
+                    cwd=os.path.dirname(solution_path) if os.path.dirname(solution_path) else None,
+                )
+                # Parse stdout for P&L signal
+                pnl = 0.0
+                for line in (result.stdout or "").split("\n"):
+                    if "PNL" in line.upper() or "NET_PNL" in line:
+                        try:
+                            pnl = float(line.split("=")[-1].strip())
+                        except (ValueError, IndexError):
+                            pass
+                equity.append(equity[-1] + pnl)
+                if equity[-2] > 0:
+                    returns.append((equity[-1] - equity[-2]) / equity[-2])
+                else:
+                    returns.append(0.0)
+            except (subprocess.TimeoutExpired, OSError):
+                returns.append(0.0)
+                equity.append(equity[-1])
+
+        final_eq = equity[-1]
+        risk_free = 0.02 / 252
+        mean_ret = sum(returns) / len(returns) if returns else 0
+        std_ret = (sum((r - mean_ret)**2 for r in returns) / len(returns))**0.5 if returns else 1
+        sharpe = ((mean_ret - risk_free) / std_ret * (252**0.5)) if std_ret > 0 else 0.0
+
+        peak = max(equity)
+        max_dd = max(((peak - eq) / peak) for eq in equity) if peak > 0 else 0.0
+
+        wins = sum(1 for r in returns if r > 0)
+        win_rate = wins / len(returns) if returns else 0.0
+
+        run = BacktestRun(
+            seed=seed,
+            final_equity=final_eq,
+            sharpe=sharpe,
+            max_dd=max_dd,
+            total_trades=len(returns),
+            win_rate=win_rate,
+            returns=returns,
+            equity_curve=equity,
+        )
+        self.runs.append(run)
+        return run
+
+    def run_monte_carlo(self, solution_path: str, iterations: int = 50,
+                        days: int = 30) -> Dict[str, Any]:
+        """Run N backtest iterations with random seeds."""
+        self.runs = []
+        for i in range(iterations):
+            seed = 42 + i * 7
+            self.run_backtest(seed, solution_path, days)
+
+        final_eqs = [r.final_equity for r in self.runs]
+        sharpes = [r.sharpe for r in self.runs]
+        dds = [r.max_dd for r in self.runs]
+        wrs = [r.win_rate for r in self.runs]
+
+        def _mean(arr): return sum(arr) / len(arr) if arr else 0
+        def _std(arr):
+            m = _mean(arr)
+            return (sum((x - m)**2 for x in arr) / len(arr))**0.5 if arr else 0
+        def _percentile(arr, pct):
+            s = sorted(arr)
+            idx = max(0, min(len(s) - 1, int(len(s) * pct)))
+            return s[idx]
+
+        return {
+            "iterations": iterations,
+            "days_per_iteration": days,
+            "mean_final_equity": round(_mean(final_eqs), 2),
+            "median_final_equity": round(_percentile(final_eqs, 0.5), 2),
+            "std_final_equity": round(_std(final_eqs), 2),
+            "min_final_equity": round(min(final_eqs), 2),
+            "max_final_equity": round(max(final_eqs), 2),
+            "mean_sharpe": round(_mean(sharpes), 3),
+            "median_sharpe": round(_percentile(sharpes, 0.5), 3),
+            "std_sharpe": round(_std(sharpes), 3),
+            "mean_max_dd": round(_mean(dds), 4),
+            "median_max_dd": round(_percentile(dds, 0.5), 4),
+            "mean_win_rate": round(_mean(wrs), 4),
+            "p10_final_equity": round(_percentile(final_eqs, 0.1), 2),
+            "p90_final_equity": round(_percentile(final_eqs, 0.9), 2),
+            "sharpe_gt_1_pct": round(sum(1 for s in sharpes if s > 1.0) / iterations * 100, 1) if iterations > 0 else 0,
+        }
+
+
+# ==============================================================================
+# SECTION 8 — WORKSPACE GENERATOR
 # ==============================================================================
 
 class WorkspaceGenerator:
@@ -2464,6 +3086,8 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         self.exchange = MockExchangeServer()
         self.workspace = WorkspaceGenerator()
         self.evaluator = EvaluationEngine(self.state, self.ledger)
+        self.risk_mgr = RiskManager(self.ledger)
+        self.backtest = BacktestEngine(self.ledger)
         self.current_day_curriculum: Optional[Dict[str, Any]] = None
         self.day_workspace_dir: Optional[str] = None
         self.running = True
@@ -2773,6 +3397,68 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         except Exception as e:
             print(f"  {c(Color.ERROR, 'Ledger error: ' + str(e))}")
 
+    def do_risk(self, arg: str):
+        """Display risk report. Usage: risk"""
+        try:
+            self.ledger.connect()
+            cb = self.risk_mgr.check_circuit_breaker(self.state.current_day)
+            print(self.risk_mgr.risk_report(self.state.current_day))
+            if cb:
+                print(f"  {c(Color.FAIL, 'WARNING: Circuit breaker is active. Trading halted.')}")
+                print(f"  {c(Color.WARN, 'Run \"risk_reset\" to clear if you have resolved the issue.')}")
+            self.ledger.close()
+        except Exception as e:
+            print(f"  {c(Color.ERROR, 'Risk report error: ' + str(e))}")
+
+    def do_risk_reset(self, arg: str):
+        """Reset circuit breaker. Usage: risk_reset"""
+        self.risk_mgr.halted = False
+        self.risk_mgr.halt_reason = None
+        self.risk_mgr.equity_curve = [RiskManager.INITIAL_CAPITAL]
+        self.risk_mgr.returns = []
+        print(f"  {c(Color.BRIGHT_GREEN, '[v] Circuit breaker reset. Risk metrics cleared.')}")
+
+    def do_backtest(self, arg: str):
+        """Run Monte Carlo backtest on the current solution. Usage: backtest [iterations=30] [days=30]"""
+        day = self.state.current_day
+        sol_path = self.workspace.get_user_solution_path(day)
+        if not os.path.exists(sol_path):
+            print(f"  {c(Color.ERROR, 'No solution file for Day ' + str(day))}")
+            return
+
+        args = arg.split()
+        iterations = int(args[0]) if len(args) > 0 else 30
+        days = int(args[1]) if len(args) > 1 else 30
+
+        print(f"  {info(f'Running Monte Carlo backtest: {iterations} iterations x {days} days...')}")
+        print(f"  {muted('This may take a while. Each iteration runs in a subprocess.')}")
+        print()
+
+        # Capture current price regime
+        if self.exchange.is_running():
+            self.backtest.capture_price_series(self.exchange.price_gen)
+
+        results = self.backtest.run_monte_carlo(sol_path, iterations, days)
+
+        print(f"  {c(Color.BRIGHT_WHITE, 'MONTE CARLO BACKTEST RESULTS')}")
+        print(f"  {muted('=' * 50)}")
+        print(f"  Iterations: {results['iterations']}  |  Days per run: {results['days_per_iteration']}")
+        print(f"  {c(Color.BRIGHT_CYAN, 'Equity Distribution:')}")
+        print(f"    Mean:    ${results['mean_final_equity']:>10,.2f}")
+        print(f"    Median:  ${results['median_final_equity']:>10,.2f}")
+        print(f"    Std:     ${results['std_final_equity']:>10,.2f}")
+        print(f"    P10:     ${results['p10_final_equity']:>10,.2f}")
+        print(f"    P90:     ${results['p90_final_equity']:>10,.2f}")
+        print(f"    Min:     ${results['min_final_equity']:>10,.2f}")
+        print(f"    Max:     ${results['max_final_equity']:>10,.2f}")
+        print(f"  {c(Color.BRIGHT_CYAN, 'Risk Metrics (distribution across runs):')}")
+        print(f"    Mean Sharpe:    {results['mean_sharpe']:.3f}")
+        print(f"    Median Sharpe:  {results['median_sharpe']:.3f}")
+        print(f"    Mean Max DD:    {results['mean_max_dd']*100:.2f}%")
+        print(f"    Mean Win Rate:  {results['mean_win_rate']*100:.1f}%")
+        print(f"    Sharpe > 1.0:   {results['sharpe_gt_1_pct']:.1f}% of runs")
+        print()
+
     def do_reset(self, arg: str):
         """Reset all progress (WARNING: loses all data). Usage: reset"""
         print(f"  {c(Color.FAIL, 'WARNING: This will erase all training progress.')}")
@@ -2810,6 +3496,9 @@ class ArbitrageAcademyCLI(cmd.Cmd):
             ("run", "Run today's solution file"),
             ("audit", "AST audit today's solution"),
             ("ledger", "Show SQLite ledger status"),
+            ("risk", "Display risk report (VaR/CVaR/circuit breaker)"),
+            ("risk_reset", "Reset circuit breaker and risk metrics"),
+            ("backtest", "Monte Carlo backtest [iters=30] [days=30]"),
             ("exchange", "Show mock exchange status"),
             ("status", "Show training progress"),
             ("reset", "Reset all training progress"),

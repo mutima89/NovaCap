@@ -4,19 +4,22 @@
 
 ## The Problem
 
-Building a multi-agent algorithmic trading system where each agent (data ingestion, execution, accounting, risk, evaluation) runs concurrently with distinct lifecycle requirements introduces a classic distributed state management problem — but without any of the usual tooling (no message queue, no database with pub/sub, not even `threading.Event` coordination in any sophisticated way). The constraint: the entire system must run on Python 3.8+ standard library only. No `asyncio`, no `celery`, no `redis`, no `zmq`.
+Building a multi-agent algorithmic trading system where each agent (data ingestion, execution, accounting, risk management, evaluation, backtesting) runs concurrently with distinct lifecycle requirements introduces a classic distributed state management problem — but without any of the usual tooling (no message queue, no database with pub/sub, not even `threading.Event` coordination in any sophisticated way). The constraint: the entire system must run on Python 3.8+ standard library only. No `asyncio`, no `celery`, no `redis`, no `zmq`.
 
 The agents in question:
 
 | Agent | Thread | Persistence Mechanism | State Scope |
 |-------|--------|----------------------|-------------|
 | CLI Orchestrator | Main thread | `save_state.json` (JSON) | Day progression, scores |
-| Mock Exchange | Daemon thread | In-memory (`MockPriceGenerator`) | Market state (prices, order books) |
+| Mock Exchange (Regime-Switching) | Daemon thread | In-memory (`MockPriceGenerator`) | Market state (prices, order books, regime) |
+| Limit Order Book | Daemon thread | In-memory (`OrderBookManager`) | Open limit orders, fills |
 | Web UI Dashboard | Daemon thread | In-memory + ledger queries | Display state |
 | SQLite Ledger | Shared (Mutex via `sqlite3`) | `training_ledger.db` | Trade records, P&L, account balances |
+| Risk Manager | CLI thread | In-memory + ledger queries | VaR/CVaR, circuit breaker, equity curve |
 | Evaluation Engine | Subprocess (caller thread) | File system + ledger queries | Audit results, test output |
+| Backtest Engine | CLI thread (+ subprocesses) | Seeded `MockPriceGenerator` iterations | Distribution of outcomes |
 
-The challenge: these agents have to share three critical pieces of mutable state — (1) the current trading day and phase, (2) the market data snapshot, and (3) the ledger integrity — without race conditions, stale reads, or deadlocks. And all of this must be debuggable by a trainee who only wrote a 50-line strategy file.
+The challenge: these agents have to share three critical pieces of mutable state — (1) the current trading day and phase, (2) the market data snapshot with regime, and (3) the ledger integrity — without race conditions, stale reads, or deadlocks. And all of this must be debuggable by a trainee who only wrote a 50-line strategy file.
 
 ---
 
@@ -119,6 +122,86 @@ If a strategy fails to record both sides of a trade, the verification catches it
 
 ---
 
+## Regime-Switching Market Engine
+
+The original `MockPriceGenerator` used a Gaussian random walk with constant volatility — ergodic and predictable. The v2 engine replaces this with a two-regime Markov-switching model with jump diffusion:
+
+### State Machine
+
+```python
+REGIMES = {
+    0: RegimeConfig(volatility=0.003, mean_reversion=0.002, trend_bias=0.0004,
+                    spread_multiplier=0.8, jump_intensity=0.002, depth=12),
+    1: RegimeConfig(volatility=0.025, mean_reversion=0.08, trend_bias=-0.0001,
+                    spread_multiplier=1.8, jump_intensity=0.015, depth=6),
+}
+```
+
+### Transition Logic
+
+The engine uses a 2×2 Markov chain with regime-dependent sojourn times:
+
+```python
+def _maybe_switch_regime(self):
+    self.regime_duration += 1
+    if self.regime_duration < self.max_regime_duration:
+        return
+    p_stay = 0.85 if self.current_regime == 0 else 0.70
+    if self.rng.random() > p_stay:
+        self.current_regime = 1 - self.current_regime
+        self.regime_duration = 0
+        self.max_regime_duration = self.rng.randint(20, 100)
+```
+
+This produces structurally different market conditions within a single simulation run — a strategy that works in low-vol trending may fail catastrophically in high-vol mean-reverting, and vice versa. The regime state is exposed to user strategies via `GET /v1/regime`.
+
+### Design Decision: No HMM Filter
+
+We chose a hard state-switching model (regime is observable via the API) rather than a hidden Markov model where the regime must be inferred. Rationale: the simulator is a _training_ tool, not a research platform. Making the regime observable lets users focus on strategy adaptation rather than state inference. A future version could add a `--hidden-regime` flag for advanced users.
+
+---
+
+## Limit Order Book Design
+
+The `OrderBookManager` implements a price-time priority book with four order types.
+
+### Data Structure
+
+```python
+class OrderBookManager:
+    def __init__(self):
+        self.buy_orders: List[Dict] = []   # sorted: -price, +timestamp
+        self.sell_orders: List[Dict] = []  # sorted: +price, +timestamp
+```
+
+Orders are stored as dictionaries in sorted lists. Insertion is `O(n)` (linear scan for priority position) and matching is `O(k)` where `k` is the number of levels consumed. For the scale involved (dozens, not millions, of orders), this is acceptable.
+
+### Matching Algorithm
+
+Market orders walk the book from best price outward, consuming liquidity until filled or exhausted:
+
+```python
+def match_market_order(self, symbol, side, quantity):
+    fills = []
+    remaining = quantity
+    book = self.sell_orders if side == "buy" else self.buy_orders
+    for order in book:
+        if remaining <= 0 or order["symbol"] != symbol:
+            continue
+        available = order["quantity"] - order["filled_qty"]
+        if available <= 0:
+            continue
+        fill_qty = min(remaining, available)
+        fills.append({"price": order["price"], "quantity": fill_qty})
+        order["filled_qty"] += fill_qty
+        remaining -= fill_qty
+    return {"fills": fills, "filled_qty": quantity - remaining, "remaining": remaining}
+```
+
+Filled orders are removed from the book; partially filled orders remain with reduced `filled_qty`. The slippage estimator (`estimate_slippage_bps`) uses the same walk to compute the volume-weighted average price vs. mid.
+
+---
+
 ## What We Gave Up
 
 - **No event-driven architecture.** Agents communicate by polling (Web UI re-renders on interval) or by file read (evaluation reads solution from disk). This is acceptable for a single-user training simulator but would not scale to sub-millisecond tick-to-order latency.
@@ -159,13 +242,19 @@ Each agent starts independently. The `cmd.Cmd` loop on the main thread orchestra
 ```
 Operation                         Mean Latency (n=100)
 ───────────────────────────────────────────────────────
-Order book fetch (HTTP localhost)     0.8 ms
-Trade execution (POST + ledger write) 3.2 ms
+Order book fetch (HTTP localhost)     0.9 ms
+Market order execution                 2.1 ms
+Limit order placement                  0.3 ms
+IOC order + partial fill              1.8 ms
+FOK order (full cancel)               0.4 ms
+Slippage estimation (walk 12 levels)  0.1 ms
+Risk report (VaR + CVaR + corr)       4.5 ms
 AST audit (100 LOC file)              1.1 ms
 EOD evaluation (full pipeline)       35–120 ms
+Monte Carlo backtest (30×30)       ~45–90 s
 ```
 
-The primary bottleneck is the hidden test subprocess (fork + import + run), which accounts for ~80% of EOD latency. Mitigation would require either test caching or in-process execution with namespace isolation — both of which would sacrifice the fault isolation guarantee.
+The primary bottleneck in EOD is the hidden test subprocess (fork + import + run), accounting for ~80% of latency. Monte Carlo backtesting is intentionally slow — each iteration is an isolated subprocess to prevent state leakage between runs. A trade-off accepted for statistical independence.
 
 ---
 
@@ -173,11 +262,13 @@ The primary bottleneck is the hidden test subprocess (fork + import + run), whic
 
 The full implementation is available at [github.com/mutima89/NovaCap](https://github.com/mutima89/NovaCap). The relevant files are:
 
-- **`arbitrage_academy.py`** — All agent layers, state machine, ledger, AST auditor, evaluation engine (~3,961 LOC)
+- **`arbitrage_academy.py`** — All agent layers, regime-switching engine, limit order book, state machine, ledger, AST auditor, risk manager, backtest engine, evaluation engine (~4,200 LOC)
 - **`server.py`** — Web UI dashboard (~1,292 LOC)
+- **`Dockerfile`** — Container deployment
+- **`.github/workflows/ci.yml`** — 19-stage CI pipeline
 - **`README.md`** — Architecture docs and setup
 
-The `StateManager`, `LedgerEngine`, and `CodeAuditor` classes are standalone and can be extracted for use in other simulation or backtesting frameworks.
+The `StateManager`, `LedgerEngine`, `CodeAuditor`, `RiskManager`, `BacktestEngine`, `OrderBookManager`, and `MockPriceGenerator` classes are standalone and can be extracted for use in other simulation or backtesting frameworks.
 
 ---
 
