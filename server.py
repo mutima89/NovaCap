@@ -16,6 +16,8 @@ import sys
 import urllib.parse
 import traceback
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import hmac
+import secrets
 from typing import Any, Dict, List, Optional
 
 # ── Import core simulation engine ──────────────────────────────────────────
@@ -84,14 +86,39 @@ def json_state() -> Dict[str, Any]:
 # HTTP REQUEST HANDLER
 # ==============================================================================
 
+NOVACAP_BIND = os.environ.get("NOVACAP_BIND", "127.0.0.1")
+NOVACAP_TOKEN = secrets.token_urlsafe(32)
+_LOCAL_HOSTNAMES = {"localhost", "127.0.0.1", "[::1]", "::1"}
+
+
+def _hostname_of(value: str) -> str:
+    value = (value or "").strip().lower()
+    if value.startswith("["):
+        return value[: value.find("]") + 1] if "]" in value else value
+    return value.rsplit(":", 1)[0] if value.count(":") == 1 else value
+
+
 class FinanceAPIHandler(BaseHTTPRequestHandler):
+
+    # ── Local-only access (see arbitrage_academy.py for the rationale) ───────
+    def _request_is_local(self) -> bool:
+        if _hostname_of(self.headers.get("Host", "")) not in _LOCAL_HOSTNAMES:
+            return False
+        origin = self.headers.get("Origin")
+        if origin and origin != "null":
+            if _hostname_of(urllib.parse.urlparse(origin).netloc) not in _LOCAL_HOSTNAMES:
+                return False
+        return True
+
+    def _request_has_token(self) -> bool:
+        sent = self.headers.get("X-NovaCap-Token", "")
+        return bool(sent) and hmac.compare_digest(sent, NOVACAP_TOKEN)
 
     # ── CORS helpers ────────────────────────────────────────────────────────
     def _send_json(self, data: Any, status: int = 200) -> None:
         body = json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -119,11 +146,14 @@ class FinanceAPIHandler(BaseHTTPRequestHandler):
 
     # ── Route dispatch ──────────────────────────────────────────────────────
     def do_GET(self):
+        if not self._request_is_local():
+            self._send_error("Forbidden: only requests addressed to localhost are served", 403)
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path.rstrip("/")
 
         if path == "" or path == "/":
-            self._send_html(HTML_TEMPLATE)
+            self._send_html(HTML_TEMPLATE.replace("__NOVACAP_TOKEN__", NOVACAP_TOKEN))
         elif path == "/api/state":
             self._handle_get_state()
         elif path.startswith("/api/task/"):
@@ -136,6 +166,9 @@ class FinanceAPIHandler(BaseHTTPRequestHandler):
             self._send_error("Not found", 404)
 
     def do_POST(self):
+        if not self._request_is_local() or not self._request_has_token():
+            self._send_error("Forbidden: missing or invalid session token", 403)
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path.rstrip("/")
 
@@ -163,11 +196,9 @@ class FinanceAPIHandler(BaseHTTPRequestHandler):
             self._send_error("Not found", 404)
 
     def do_OPTIONS(self):
-        """CORS preflight."""
-        self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        """No cross-origin access: the page is served from this server."""
+        self.send_response(403)
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     # ── API handlers ────────────────────────────────────────────────────────
@@ -792,7 +823,7 @@ let currentTaskId = null;
 // API HELPER
 // ═══════════════════════════════════════════════════════════════════
 async function api(method, path, body) {
-  const opts = { method, headers: {} };
+  const opts = { method, headers: { 'X-NovaCap-Token': '__NOVACAP_TOKEN__' } };
   if (body) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
@@ -1274,7 +1305,7 @@ function backToBriefing() {
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
 
-    server = HTTPServer(("", port), FinanceAPIHandler)
+    server = HTTPServer((NOVACAP_BIND, port), FinanceAPIHandler)
     print(f" " + "=" * 58)
     print(f"  NovaCap Financial Simulation — Web Server")
     print(f"  Open:  http://localhost:{port}")

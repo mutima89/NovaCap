@@ -30,7 +30,7 @@
 
 > <b>Write real Python strategies against a regime-switching market with a full limit order book,<br>
 > double-entry accounting, institutional risk controls, and Monte Carlo backtesting —<br>
-> all inside a single <code>.py</code> file. <b>Zero dependencies.</b>
+> in pure-Python standard library code. <b>Zero dependencies.</b>
 
 <br>
 
@@ -124,14 +124,14 @@ Built on six integrated agent layers, NovaCap is a self-contained ecosystem with
 - ✅ **Portfolio correlation** — real-time inter-symbol tracking
 
 ### 🔬 Backtesting
-- ✅ **Monte Carlo engine** — N iterations × D days in subprocess isolation
+- ✅ **Monte Carlo engine** — N iterations × D days on seeded markets, scored from exchange fills
 - ✅ **Distribution statistics** — mean, median, P10, P90 final equity
 - ✅ **Sharpe analysis** — probability of risk-adjusted return > 1.0
 - ✅ **Max drawdown distribution** — severity range across all runs
 
 ### 🔍 Evaluation
 - ✅ **AST static auditor** — 9 check categories (eval, loops, annotations, globals...)
-- ✅ **Hidden test suite** — isolated subprocess, 30s timeout
+- ✅ **Hidden test suite** — separate process, 30s timeout
 - ✅ **Composite scoring** — 0–100 with weighted deductions
 - ✅ **90-day curriculum** — 3 phases across 3 market regimes
 
@@ -330,7 +330,7 @@ GET /v1/health
 | Layer 1 ↔ Layer 2 | HTTP REST | `GET /v1/orderbook`, `POST /v1/execute`, `GET /v1/regime` |
 | Layer 2 ↔ Layer 4 | SQLite | `LedgerEngine.record_trade()` — double-entry journal |
 | Layer 5 | Ledger queries | Reads equity curve, computes VaR/CVaR from returns |
-| Layer 6 | Subprocess | Isolated process with `NOVACAP_SEED` + `NOVACAP_DAY` env vars |
+| Layer 6 | Subprocess | Separate process with `NOVACAP_SEED` + `NOVACAP_DAY` env vars |
 
 | Component | Threading | Port |
 |-----------|-----------|------|
@@ -416,7 +416,7 @@ strategist> risk_reset       Reset circuit breaker and risk metrics
 strategist> backtest [iterations=30] [days=30]
 ```
 
-Each iteration runs in an isolated subprocess with seeded `MockPriceGenerator` state. Results aggregate into a distribution:
+For each iteration the mock exchange quotes from a `MockPriceGenerator` seeded for that iteration, and your strategy runs once per simulated day as a separate process. **P&L is computed by the harness from the fills the exchange reports, marked to market at each day's prices** — nothing your script prints affects the score, so trade through `POST /v1/execute`. The same seed always produces the same market. Results aggregate into a distribution:
 
 | Metric | What It Tells You |
 |--------|-------------------|
@@ -444,7 +444,7 @@ On `eod`, three stages execute in sequence:
 
 ```
 Stage 1   AST Static Audit          CodeAuditor — 9 check categories
-Stage 2   Hidden Test Suite         Subprocess isolation, 30s timeout
+Stage 2   Hidden Test Suite         Separate process, 30s timeout
 Stage 3   Ledger Integrity          Debits = Credits (tolerance 0.001)
 ```
 
@@ -477,24 +477,38 @@ NovaCap/
 ├── ENGINEERING_BREAKDOWN.md
 ├── BEFORE_YOU_BEGIN.html
 ├── TRAINING_PROGRAM.html
-├── EULA.md                    MIT License
+├── LICENSE                    MIT License
+├── EULA.md                    MIT License (same text)
 └── .gitignore
 ```
 
 ---
 
+## 🔒 Security model
+
+NovaCap runs your Python code, so its local servers are locked down:
+
+- Both servers bind to `127.0.0.1` by default (`NOVACAP_BIND` overrides it; the Docker image sets `0.0.0.0` inside the container).
+- Requests must be addressed to `localhost`/`127.0.0.1`, which blocks DNS-rebinding attacks from web pages.
+- No cross-origin (CORS) access is granted.
+- Every state-changing dashboard request must carry a random per-run token that only the dashboard page receives.
+
+Strategies and tests run as separate processes with your user's permissions. That is a crash and timeout boundary, **not a sandbox**: the `CodeAuditor` is a teaching aid, not a security control. Only run code you have read.
+
 ## 🐳 Docker
 
 ```bash
 docker build -t novacap .
-docker run -p 8080:8080 -p 8081:8081 novacap
+docker run -p 127.0.0.1:8080:8080 -p 127.0.0.1:8081:8081 novacap
 ```
+
+Publish the ports on `127.0.0.1` as shown. The dashboard can save and run Python files, so it must not be reachable from other machines.
 
 ---
 
 ## ✅ CI Pipeline
 
-GitHub Actions runs **19 validation stages** across **Python 3.8, 3.9, 3.10, 3.11, and 3.12**:
+GitHub Actions runs **12 validation stages** across **Python 3.8, 3.9, 3.10, 3.11, and 3.12**:
 
 1. Zero-dependency verification
 2. AST parser validation
@@ -507,6 +521,7 @@ GitHub Actions runs **19 validation stages** across **Python 3.8, 3.9, 3.10, 3.1
 9. BacktestEngine initialization
 10. CLI method completeness
 11. Full integration smoke test (9 HTTP endpoints)
+12. Dockerfile validation
 
 ---
 

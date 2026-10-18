@@ -42,6 +42,44 @@ from urllib.parse import urlparse, parse_qs
 from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 
+# ── Local web security ────────────────────────────────────────────────────────
+# The dashboard can save and run Python files, so it must only ever be driven by
+# the page it served itself. Defences: bind to loopback by default, accept only
+# localhost Host headers (blocks DNS rebinding), no wildcard CORS, and a random
+# per-run token that state-changing requests must echo in a custom header
+# (a cross-site page can neither read the token nor send the header).
+import hmac
+import secrets
+
+NOVACAP_BIND = os.environ.get("NOVACAP_BIND", "127.0.0.1")
+NOVACAP_TOKEN = secrets.token_urlsafe(32)
+_LOCAL_HOSTNAMES = {"localhost", "127.0.0.1", "[::1]", "::1"}
+
+
+def _hostname_of(value: str) -> str:
+    value = (value or "").strip().lower()
+    if value.startswith("["):
+        return value[: value.find("]") + 1] if "]" in value else value
+    return value.rsplit(":", 1)[0] if value.count(":") == 1 else value
+
+
+def request_is_local(handler) -> bool:
+    """True when Host (and Origin, if sent) name this machine."""
+    if _hostname_of(handler.headers.get("Host", "")) not in _LOCAL_HOSTNAMES:
+        return False
+    origin = handler.headers.get("Origin")
+    if origin and origin != "null":
+        netloc = urlparse(origin).netloc
+        if _hostname_of(netloc) not in _LOCAL_HOSTNAMES:
+            return False
+    return True
+
+
+def request_has_token(handler) -> bool:
+    sent = handler.headers.get("X-NovaCap-Token", "")
+    return bool(sent) and hmac.compare_digest(sent, NOVACAP_TOKEN)
+
+
 __version__ = "2.0.0"
 __author__ = "Principal Strategist — NovaCap Financial Technologies Ltd."
 
@@ -625,11 +663,29 @@ class MockExchangeHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass
 
+    def _record_execution(self, data: Any, status: int) -> None:
+        """Journal fills reported by /v1/execute; the backtest scores strategies from this."""
+        if status >= 400 or not isinstance(data, dict) or not self.path.startswith("/v1/execute"):
+            return
+        qty = float(data.get("filled_qty") or 0)
+        price = float(data.get("avg_price") or 0)
+        if qty <= 0 or price <= 0:
+            return
+        journal = getattr(self.server, "executions", None)
+        lock = getattr(self.server, "executions_lock", None)
+        if journal is None or lock is None:
+            return
+        with lock:
+            journal.append({
+                "symbol": data.get("symbol"), "side": data.get("side"),
+                "qty": qty, "price": price, "fee": float(data.get("fee") or 0),
+            })
+
     def _send_json(self, data: Any, status: int = 200):
+        self._record_execution(data, status)
         body = json.dumps(data).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -901,10 +957,8 @@ class MockExchangeHandler(BaseHTTPRequestHandler):
             self._send_error(f"Unknown endpoint: {path}", 404)
 
     def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_response(403)
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
 
@@ -913,8 +967,8 @@ class MockExchangeServer:
     Background threaded HTTP server simulating a financial exchange.
     """
 
-    def __init__(self, host: str = "localhost", port: int = 8080):
-        self.host = host
+    def __init__(self, host: Optional[str] = None, port: int = 8080):
+        self.host = host or NOVACAP_BIND
         self.port = port
         self.price_gen = MockPriceGenerator()
         self.server: Optional[HTTPServer] = None
@@ -929,6 +983,8 @@ class MockExchangeServer:
         try:
             self.server = HTTPServer((self.host, self.port), MockExchangeHandler)
             self.server.price_gen = self.price_gen
+            self.server.executions = []
+            self.server.executions_lock = threading.Lock()
             self.thread = threading.Thread(target=self.server.serve_forever,
                                            daemon=True)
             self.thread.start()
@@ -1802,8 +1858,11 @@ class BacktestEngine:
     Replays a stored price sequence against a strategy using seeded runs.
     """
 
-    def __init__(self, ledger: LedgerEngine):
+    TICKS_PER_DAY = 10  # price updates between simulated trading days
+
+    def __init__(self, ledger: LedgerEngine, exchange: Optional["MockExchangeServer"] = None):
         self.ledger = ledger
+        self.exchange = exchange
         self.runs: List[BacktestRun] = []
         self._price_series: Dict[str, List[float]] = {}
 
@@ -1815,51 +1874,67 @@ class BacktestEngine:
 
     def run_backtest(self, seed: int, solution_path: str, days: int = 30) -> BacktestRun:
         """
-        Run a single backtest with a fixed seed.
-        Replays stored price sequence against the strategy.
+        Run a single backtest on a seeded market.
+
+        For the duration of the run the exchange quotes from a MockPriceGenerator
+        seeded with `seed`. P&L is computed by the harness from the fills the
+        exchange journals, marked to market at each day's prices. Nothing the
+        strategy prints affects the score.
         """
-        # We use the existing EvaluationEngine to score
+        ex = self.exchange
+        server = getattr(ex, "server", None) if ex else None
+        if not (ex and ex.is_running() and server is not None):
+            raise RuntimeError("Backtest needs the mock exchange running (it scores strategies from exchange fills).")
+
         pg = MockPriceGenerator(seed)
-        # Fast-forward to build history
-        for _ in range(100):
+        for _ in range(100):  # build history
             pg.update()
 
-        # Run the solution against the seeded generator using subprocess
+        live_pg = server.price_gen
+        server.price_gen = pg
         start_equity = 100000.0
+        cash = 0.0
+        positions: Dict[str, float] = {}
         equity = [start_equity]
         returns: List[float] = []
+        n_fills = 0
+        winning_days = 0
 
-        for day_idx in range(days):
-            if not os.path.exists(solution_path):
-                break
-            try:
-                env = os.environ.copy()
-                env["NOVACAP_SEED"] = str(seed + day_idx)
-                env["NOVACAP_DAY"] = str(day_idx + 1)
-                result = subprocess.run(
-                    [sys.executable, solution_path],
-                    capture_output=True,
-                    text=True,
-                    timeout=15,
-                    env=env,
-                    cwd=os.path.dirname(solution_path) if os.path.dirname(solution_path) else None,
-                )
-                # Parse stdout for P&L signal
-                pnl = 0.0
-                for line in (result.stdout or "").split("\n"):
-                    if "PNL" in line.upper() or "NET_PNL" in line:
-                        try:
-                            pnl = float(line.split("=")[-1].strip())
-                        except (ValueError, IndexError):
-                            pass
-                equity.append(equity[-1] + pnl)
-                if equity[-2] > 0:
-                    returns.append((equity[-1] - equity[-2]) / equity[-2])
-                else:
-                    returns.append(0.0)
-            except (subprocess.TimeoutExpired, OSError):
-                returns.append(0.0)
-                equity.append(equity[-1])
+        def mark() -> float:
+            return start_equity + cash + sum(q * pg.prices.get(sym, 0.0) for sym, q in positions.items())
+
+        try:
+            for day_idx in range(days):
+                if not os.path.exists(solution_path):
+                    break
+                with server.executions_lock:
+                    start_idx = len(server.executions)
+                try:
+                    env = os.environ.copy()
+                    env["NOVACAP_SEED"] = str(seed + day_idx)
+                    env["NOVACAP_DAY"] = str(day_idx + 1)
+                    subprocess.run(
+                        [sys.executable, solution_path],
+                        capture_output=True, text=True, timeout=15, env=env,
+                        cwd=os.path.dirname(solution_path) if os.path.dirname(solution_path) else None,
+                    )
+                except (subprocess.TimeoutExpired, OSError):
+                    pass  # fills made before the timeout still count
+                with server.executions_lock:
+                    fills = list(server.executions[start_idx:])
+                for f in fills:
+                    sign = 1.0 if f["side"] == "buy" else -1.0
+                    positions[f["symbol"]] = positions.get(f["symbol"], 0.0) + sign * f["qty"]
+                    cash -= sign * f["qty"] * f["price"] + f["fee"]
+                n_fills += len(fills)
+                for _ in range(self.TICKS_PER_DAY):
+                    pg.update()
+                equity.append(mark())
+                ret = (equity[-1] - equity[-2]) / equity[-2] if equity[-2] > 0 else 0.0
+                returns.append(ret)
+                winning_days += ret > 0
+        finally:
+            server.price_gen = live_pg
 
         final_eq = equity[-1]
         risk_free = 0.02 / 252
@@ -1867,19 +1942,19 @@ class BacktestEngine:
         std_ret = (sum((r - mean_ret)**2 for r in returns) / len(returns))**0.5 if returns else 1
         sharpe = ((mean_ret - risk_free) / std_ret * (252**0.5)) if std_ret > 0 else 0.0
 
-        peak = max(equity)
-        max_dd = max(((peak - eq) / peak) for eq in equity) if peak > 0 else 0.0
-
-        wins = sum(1 for r in returns if r > 0)
-        win_rate = wins / len(returns) if returns else 0.0
+        peak, max_dd = equity[0], 0.0
+        for eq in equity:
+            peak = max(peak, eq)
+            if peak > 0:
+                max_dd = max(max_dd, (peak - eq) / peak)
 
         run = BacktestRun(
             seed=seed,
             final_equity=final_eq,
             sharpe=sharpe,
             max_dd=max_dd,
-            total_trades=len(returns),
-            win_rate=win_rate,
+            total_trades=n_fills,
+            win_rate=winning_days / len(returns) if returns else 0.0,
             returns=returns,
             equity_curve=equity,
         )
@@ -3087,7 +3162,7 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         self.workspace = WorkspaceGenerator()
         self.evaluator = EvaluationEngine(self.state, self.ledger)
         self.risk_mgr = RiskManager(self.ledger)
-        self.backtest = BacktestEngine(self.ledger)
+        self.backtest = BacktestEngine(self.ledger, self.exchange)
         self.current_day_curriculum: Optional[Dict[str, Any]] = None
         self.day_workspace_dir: Optional[str] = None
         self.running = True
@@ -3443,9 +3518,11 @@ class ArbitrageAcademyCLI(cmd.Cmd):
         print(f"  {muted('This may take a while. Each iteration runs in a subprocess.')}")
         print()
 
-        # Capture current price regime
-        if self.exchange.is_running():
-            self.backtest.capture_price_series(self.exchange.price_gen)
+        # Strategies are scored from the exchange's fills, so it must be running
+        if not self.exchange.is_running() and not self.exchange.start():
+            print(f"  {c(Color.ERROR, 'Backtest needs the mock exchange on port 8080; could not start it.')}")
+            return
+        self.backtest.capture_price_series(self.exchange.price_gen)
 
         results = self.backtest.run_monte_carlo(sol_path, iterations, days)
 
@@ -3583,7 +3660,6 @@ class WebUIHandler(BaseHTTPRequestHandler):
         body = json.dumps(data).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -3618,13 +3694,16 @@ class WebUIHandler(BaseHTTPRequestHandler):
             return {}
 
     def do_GET(self):
+        if not request_is_local(self):
+            self._send_error("Forbidden: NovaCap only answers requests addressed to localhost", 403)
+            return
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
         params = parse_qs(parsed.query)
 
         # ── API endpoints ─────────────────────────────────────────
         if path == "/" or path == "":
-            self._send_html(HTML_DASHBOARD)
+            self._send_html(HTML_DASHBOARD.replace("__NOVACAP_TOKEN__", NOVACAP_TOKEN))
         elif path == "/api/status":
             self._handle_api_status()
         elif path == "/api/briefing":
@@ -3649,6 +3728,9 @@ class WebUIHandler(BaseHTTPRequestHandler):
             self._send_error("Not found", 404)
 
     def do_POST(self):
+        if not request_is_local(self) or not request_has_token(self):
+            self._send_error("Forbidden: missing or invalid session token", 403)
+            return
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
 
@@ -3665,10 +3747,9 @@ class WebUIHandler(BaseHTTPRequestHandler):
             self._send_error("Not found", 404)
 
     def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        # No cross-origin access: the dashboard is same-origin and needs no preflight.
+        self.send_response(403)
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     # ── API Handlers ──────────────────────────────────────────────
@@ -3942,7 +4023,7 @@ class WebUIServer:
         if self.running:
             return True
         try:
-            self.server = HTTPServer(("0.0.0.0", self.port), WebUIHandler)
+            self.server = HTTPServer((NOVACAP_BIND, self.port), WebUIHandler)
             self.thread = threading.Thread(target=self.server.serve_forever,
                                            daemon=True)
             self.thread.start()
@@ -4233,8 +4314,10 @@ let currentView = 'dashboard';
 let pollingInterval = null;
 let editorDirty = false;
 
+const NOVACAP_TOKEN = "__NOVACAP_TOKEN__";
+
 async function api(method, path, body) {
-  const opts = { method, headers: {} };
+  const opts = { method, headers: { 'X-NovaCap-Token': NOVACAP_TOKEN } };
   if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   const resp = await fetch(path, opts);
   const data = await resp.json();
