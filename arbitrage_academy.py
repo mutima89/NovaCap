@@ -234,12 +234,15 @@ class PrincipalStrategist:
     @staticmethod
     def _banner() -> str:
         Bc = BoxChars
+        # Pad from the visible text length so the right border lines up (box interior = 74)
+        title = "PRINCIPAL STRATEGIST"
+        subtitle = "NovaCap Financial Technologies Ltd. — 90-Day Arbitrage Protocol"
         lines = [
             "",
             c(Color.BRIGHT_CYAN, f"{Bc.TL2}{Bc.H2 * 74}{Bc.TR2}"),
             c(Color.BRIGHT_CYAN, f"{Bc.V2}") + " " * 74 + c(Color.BRIGHT_CYAN, f"{Bc.V2}"),
-            c(Color.BRIGHT_CYAN, f"{Bc.V2}") + f"  {c(Color.BRIGHT_WHITE, 'PRINCIPAL STRATEGIST')}" + " " * 49 + c(Color.BRIGHT_CYAN, f"{Bc.V2}"),
-            c(Color.BRIGHT_CYAN, f"{Bc.V2}") + f"  {c(Color.GRAY, 'NovaCap Financial Technologies Ltd. — 90-Day Arbitrage Protocol')}" + " " * 13 + c(Color.BRIGHT_CYAN, f"{Bc.V2}"),
+            c(Color.BRIGHT_CYAN, f"{Bc.V2}") + f"  {c(Color.BRIGHT_WHITE, title)}" + " " * (72 - len(title)) + c(Color.BRIGHT_CYAN, f"{Bc.V2}"),
+            c(Color.BRIGHT_CYAN, f"{Bc.V2}") + f"  {c(Color.GRAY, subtitle)}" + " " * (72 - len(subtitle)) + c(Color.BRIGHT_CYAN, f"{Bc.V2}"),
             c(Color.BRIGHT_CYAN, f"{Bc.V2}") + " " * 74 + c(Color.BRIGHT_CYAN, f"{Bc.V2}"),
             c(Color.BRIGHT_CYAN, f"{Bc.BL2}{Bc.H2 * 74}{Bc.BR2}"),
             "",
@@ -4241,9 +4244,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   .editor-wrap{border:1px solid var(--border)}
   .editor-header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:var(--bg-surface);border-bottom:1px solid var(--border);font-size:9px;color:var(--text-muted)}
   .editor-body{display:flex}
-  .editor-gutter{padding:12px 8px;background:var(--bg-primary);color:var(--text-muted);font-family:var(--font-data);font-size:11px;line-height:1.6;text-align:right;user-select:none;min-width:28px;border-right:1px solid var(--border)}
-  .editor-area{flex:1}
-  .editor-area textarea{width:100%;min-height:400px;background:var(--bg-input);color:var(--text-primary);border:none;padding:12px;font-family:var(--font-data);font-size:11px;line-height:1.6;resize:vertical;outline:none;tab-size:2}
+  .editor-gutter{padding:12px 8px;background:var(--bg-primary);color:var(--text-muted);font-family:var(--font-data);font-size:11px;line-height:1.6;text-align:right;user-select:none;min-width:28px;border-right:1px solid var(--border);white-space:pre}
+  .editor-area{flex:1;display:flex}
+  .editor-area textarea{width:100%;flex:1;min-height:400px;background:var(--bg-input);color:var(--text-primary);border:none;padding:12px;font-family:var(--font-data);font-size:11px;line-height:1.6;resize:vertical;outline:none;tab-size:2}
   .editor-area textarea:focus{background:var(--bg-primary)}
   .editor-status{display:flex;justify-content:space-between;padding:4px 12px;background:var(--bg-surface);border-top:1px solid var(--border);font-size:8px;color:var(--text-muted);font-family:var(--font-data)}
 
@@ -4494,9 +4497,9 @@ async function renderEditor() {
   c.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading editor...</div></div>';
   try {
     const data = await api('GET', '/api/solution');
-    const lines = data.code.split('\\n');
+    const lines = data.code.split('\n');
     let gutterHtml = '';
-    for (let i = 1; i <= lines.length; i++) gutterHtml += i + '\\n';
+    for (let i = 1; i <= lines.length; i++) gutterHtml += i + '\n';
     c.innerHTML = '<div class="card"><div class="card-title" style="justify-content:space-between">' +
       '<span><span class="accent">&#128187;</span> Code Editor &mdash; Day ' + data.day + '</span>' +
       '<div class="btn-group" style="margin:0">' +
@@ -4677,8 +4680,8 @@ async function actionRun() {
       panel.style.display = 'block';
       out.textContent = '';
       if (data.stdout) out.textContent += data.stdout;
-      if (data.stderr) out.textContent += '\\n[STDERR]\\n' + data.stderr;
-      if (data.error) out.textContent += '\\n[ERROR]\\n' + data.error;
+      if (data.stderr) out.textContent += '\n[STDERR]\n' + data.stderr;
+      if (data.error) out.textContent += '\n[ERROR]\n' + data.error;
       if (data.success) showToast('Execution OK (exit 0)', 'success');
       else showToast('Execution completed with errors', 'error');
     } else {
